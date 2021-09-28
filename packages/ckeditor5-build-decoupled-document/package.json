@@ -49,7 +49,7 @@
     "@ckeditor/ckeditor5-paste-from-office": "^29.2.0",
     "@ckeditor/ckeditor5-table": "^29.2.0",
     "@ckeditor/ckeditor5-typing": "^29.2.0",
-    "ckeditor5-line-height-plugin": "^0.1.6"
+    "ckeditor5-line-height-plugin": "git+ssh://git@github.com/BuildHero/ckeditor5-line-height-plugin.git"
   },
   "devDependencies": {
     "@ckeditor/ckeditor5-core": "^29.2.0",
