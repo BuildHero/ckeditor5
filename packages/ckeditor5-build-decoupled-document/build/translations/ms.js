@@ -1,1 +1,1 @@
-!function(n){const a=n.ms=n.ms||{};a.dictionary=Object.assign(a.dictionary||{},{"Cannot upload file:":"Gagal memuat naik fail","Upload in progress":"Muat naik sedang berlangsung"}),a.getPluralForm=function(n){return 0}}(window.CKEDITOR_TRANSLATIONS||(window.CKEDITOR_TRANSLATIONS={}));
+!function(n){const i=n.ms=n.ms||{};i.dictionary=Object.assign(i.dictionary||{},{"Cannot upload file:":"Gagal memuat naik fail"}),i.getPluralForm=function(n){return 0}}(window.CKEDITOR_TRANSLATIONS||(window.CKEDITOR_TRANSLATIONS={}));

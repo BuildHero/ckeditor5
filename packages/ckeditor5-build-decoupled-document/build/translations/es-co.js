@@ -1,1 +1,0 @@
-!function(o){const n=o["es-co"]=o["es-co"]||{};n.dictionary=Object.assign(n.dictionary||{},{"Upload in progress":"Carga en progreso"}),n.getPluralForm=function(o){return 1==o?0:0!=o&&o%1e6==0?1:2}}(window.CKEDITOR_TRANSLATIONS||(window.CKEDITOR_TRANSLATIONS={}));
