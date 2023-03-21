@@ -51,6 +51,7 @@ import { createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
 import smartfieldIcon from './smartfieldIcon.svg';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import LineHeight from 'ckeditor5-line-height-plugin/src/lineheight';
+import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleuploadadapter';
 
 class InsertSmartField extends Plugin {
 	init() {
@@ -172,6 +173,7 @@ DecoupledEditor.builtinPlugins = [
 	Pagination,
 	Paragraph,
 	PasteFromOffice,
+	SimpleUploadAdapter,
 	Table,
 	TableCellProperties,
 	TableProperties,
