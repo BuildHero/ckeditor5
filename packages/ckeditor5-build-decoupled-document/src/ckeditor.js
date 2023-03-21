@@ -209,7 +209,7 @@ DecoupledEditor.defaultConfig = {
 			'link',
 			'blockquote',
 			// Removing image btn until uploading images enabled
-			// 'uploadImage',
+			'uploadImage',
 			'insertTable',
 			'mediaEmbed',
 			'|',
