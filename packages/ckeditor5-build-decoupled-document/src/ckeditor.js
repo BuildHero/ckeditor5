@@ -148,6 +148,40 @@ class MyUploadAdapter {
 
 		xhr.addEventListener('error', () => reject(genericErrorText));
 		xhr.addEventListener('abort', () => reject());
+		xhr.addEventListener('readystatechange', () => {
+			xhr.onreadystatechange = function (e) {
+				const {
+					responseHeaders = {},
+					responseText = '{}',
+					status = '',
+					statusText = '',
+				} = e.target;
+				if (xhr.readyState === 4 && responseHeaders['X-Cld-Error']) {
+					const errorMessage = responseHeaders['X-Cld-Error'];
+					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+				}
+				if (xhr.readyState === 4 && status === 413) {
+					// 413 Payload Too Large error
+					const errorMessage = statusText;
+					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+				}
+				if (xhr.readyState === 4 && status === 400) {
+					// 400 Bad request - invalid image file
+					let resp;
+					try {
+						resp = JSON.parse(responseText);
+					} catch (err) {
+						reject('Unable to parse error message');
+					}
+					const errorMessage = statusText;
+					reject(
+						`invoke::cloudinary-helper::ERROR ${
+							(resp.error && resp.error.message) || errorMessage
+						}`
+					);
+				}
+			};
+		});
 		xhr.addEventListener('load', () => {
 			const response = xhr.response;
 
@@ -207,8 +241,6 @@ class MyUploadAdapter {
 		);
 		// Prepare the form data.
 		const data = new FormData();
-		const fileExt = file.name.split('.').pop();
-		console.log({ fileExt });
 		data.append('eager', cloudinaryParams.eager);
 		data.append('public_id', cloudinaryParams.public_id);
 		data.append('folder', cloudinaryParams.folder);
