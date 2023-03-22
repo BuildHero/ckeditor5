@@ -179,7 +179,7 @@ DecoupledEditor.builtinPlugins = [
 	TableToolbar,
 	TextTransformation,
 	Widget,
-	SimpleUploadAdapter,
+	// SimpleUploadAdapter,
 ];
 
 // Editor configuration.
