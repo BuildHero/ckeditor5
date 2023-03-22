@@ -187,14 +187,23 @@ class MyUploadAdapter {
 	}
 
 	// Prepares the data and sends the request.
-	_sendRequest(file) {
+	async _sendRequest(file) {
 		const editor = this.editor;
 		const api_key =
 			editor.config._config.simpleUpload.headers.Authorization;
 		const {
+			appsyncClient,
 			cloudinaryParams,
-			cloudinarySignature,
+			getCloudinarySignatureQuery,
 		} = editor.config._config.simpleUpload;
+		const signature = await appsyncClient.query(
+			getCloudinarySignatureQuery,
+			{
+				data: cloudinaryParams,
+				invalidate: true,
+			}
+		);
+		console.log({ signature });
 		// Prepare the form data.
 		const data = new FormData();
 
@@ -202,10 +211,7 @@ class MyUploadAdapter {
 		data.append('public_id', cloudinaryParams.public_id);
 		data.append('folder', cloudinaryParams.folder);
 		data.append('timestamp', cloudinaryParams.timestamp);
-		data.append(
-			'signature',
-			cloudinarySignature.data.getCloudinarySignature
-		);
+		data.append('signature', signature.data.getCloudinarySignature);
 		data.append('tags', cloudinaryParams.tags);
 		data.append('file', file);
 		data.append('api_key', api_key);
