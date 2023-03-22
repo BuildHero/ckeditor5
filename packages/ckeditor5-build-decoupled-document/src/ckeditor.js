@@ -115,6 +115,7 @@ class MyUploadAdapter {
 		return this.loader.file.then(
 			(file) =>
 				new Promise((resolve, reject) => {
+					console.log({ file });
 					this._initRequest();
 					this._initListeners(resolve, reject, file);
 					this._sendRequest(file);
@@ -203,7 +204,6 @@ class MyUploadAdapter {
 				invalidate: true,
 			}
 		);
-		console.log({ signature });
 		// Prepare the form data.
 		const data = new FormData();
 
@@ -213,7 +213,7 @@ class MyUploadAdapter {
 		data.append('timestamp', cloudinaryParams.timestamp);
 		data.append('signature', signature.data.getCloudinarySignature);
 		data.append('tags', cloudinaryParams.tags);
-		data.append('upload', file);
+		data.append('file', file);
 		data.append('api_key', api_key);
 
 		// Important note: This is the right place to implement security mechanisms
