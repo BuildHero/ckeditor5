@@ -213,7 +213,7 @@ class MyUploadAdapter {
 		data.append('timestamp', cloudinaryParams.timestamp);
 		data.append('signature', signature.data.getCloudinarySignature);
 		data.append('tags', cloudinaryParams.tags);
-		data.append('file', file);
+		data.append('upload', file);
 		data.append('api_key', api_key);
 
 		// Important note: This is the right place to implement security mechanisms
