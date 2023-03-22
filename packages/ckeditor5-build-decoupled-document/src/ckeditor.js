@@ -131,12 +131,14 @@ class MyUploadAdapter {
 	// Initializes the XMLHttpRequest object using the URL passed to the constructor.
 	_initRequest() {
 		const xhr = (this.xhr = new XMLHttpRequest());
+		const editor = this.editor;
+		const url = editor.config._config.simpleUpload.uploadUrl;
 
 		// Note that your request may look different. It is up to you and your editor
 		// integration to choose the right communication channel. This example uses
 		// a POST request with JSON as a data structure but your configuration
 		// could be different.
-		xhr.open('POST', 'http://example.com/image/upload/path', true);
+		xhr.open('POST', url, true);
 		xhr.responseType = 'json';
 	}
 
