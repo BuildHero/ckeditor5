@@ -104,9 +104,10 @@ class InsertSmartField extends Plugin {
 }
 
 class MyUploadAdapter {
-	constructor(loader) {
+	constructor(loader, editor) {
 		// The file loader instance to use during the upload.
 		this.loader = loader;
+		this.editor = editor;
 	}
 
 	// Starts the upload process.
@@ -132,12 +133,8 @@ class MyUploadAdapter {
 	_initRequest() {
 		const xhr = (this.xhr = new XMLHttpRequest());
 		const editor = this.editor;
+		console.log({ thisHere: this });
 		const url = editor.config._config.simpleUpload.uploadUrl;
-
-		// Note that your request may look different. It is up to you and your editor
-		// integration to choose the right communication channel. This example uses
-		// a POST request with JSON as a data structure but your configuration
-		// could be different.
 		xhr.open('POST', url, true);
 		xhr.responseType = 'json';
 	}
@@ -191,10 +188,14 @@ class MyUploadAdapter {
 
 	// Prepares the data and sends the request.
 	_sendRequest(file) {
+		const editor = this.editor;
+		const api_key =
+			editor.config._config.simpleUpload.headers.Authorization;
 		// Prepare the form data.
 		const data = new FormData();
 
 		data.append('upload', file);
+		data.append('api_key', api_key);
 
 		// Important note: This is the right place to implement security mechanisms
 		// like authentication and CSRF protection. For instance, you can use
@@ -209,7 +210,7 @@ class MyUploadAdapter {
 function MyCustomUploadAdapterPlugin(editor) {
 	editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
 		// Configure the URL to the upload script in your back-end here!
-		return new MyUploadAdapter(loader);
+		return new MyUploadAdapter(loader, editor);
 	};
 }
 
