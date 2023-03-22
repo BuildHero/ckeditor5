@@ -189,6 +189,7 @@ class MyUploadAdapter {
 
 	// Prepares the data and sends the request.
 	async _sendRequest(file) {
+		const xhr = this.xhr;
 		const editor = this.editor;
 		const api_key =
 			editor.config._config.simpleUpload.headers.Authorization;
@@ -213,7 +214,7 @@ class MyUploadAdapter {
 		data.append('folder', cloudinaryParams.folder);
 		data.append('timestamp', cloudinaryParams.timestamp);
 		data.append('signature', signature.data.getCloudinarySignature);
-		data.append('tags', `${cloudinaryParams.tags}.${fileExt}`);
+		data.append('tags', `${cloudinaryParams.tags}`);
 		data.append('file', file);
 		data.append('api_key', api_key);
 
@@ -221,6 +222,7 @@ class MyUploadAdapter {
 		// like authentication and CSRF protection. For instance, you can use
 		// XMLHttpRequest.setRequestHeader() to set the request headers containing
 		// the CSRF token generated earlier by your application.
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
 		// Send the request.
 		this.xhr.send(data);
