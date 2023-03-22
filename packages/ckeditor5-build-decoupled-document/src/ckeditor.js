@@ -61,45 +61,45 @@ class InsertSmartField extends Plugin {
 		const smartFieldsConfig = editor.config._config.smartFields;
 		const {
 			cbFn = () => {},
-			smartFieldsDropdownList: smartFields = []
+			smartFieldsDropdownList: smartFields = [],
 		} = smartFieldsConfig;
 
-		componentFactory.add( 'insertSmartField', locale => {
-			const dropdownView = createDropdown( locale );
+		componentFactory.add('insertSmartField', (locale) => {
+			const dropdownView = createDropdown(locale);
 
-			dropdownView.buttonView.set( {
+			dropdownView.buttonView.set({
 				class: 'smartfield-icon',
 				icon: smartfieldIcon,
-				label: t( 'Insert smart field' ),
-				tooltip: true
-			} );
+				label: t('Insert smart field'),
+				tooltip: true,
+			});
 
 			// The collection of list items
 			const items = new Collection();
 
-			smartFields.map( option =>
-				items.add( {
+			smartFields.map((option) =>
+				items.add({
 					type: 'button',
-					model: new Model( {
+					model: new Model({
 						label: option,
 						withText: true,
-						tooltip: true
-					} )
-				} )
+						tooltip: true,
+					}),
+				})
 			);
 			// Create a dropdown with list of smartfields inside the panel.
-			addListToDropdown( dropdownView, items );
-			dropdownView.on( 'execute', evt => {
-				const formattedText = `[[${ evt.source.label.replace(
+			addListToDropdown(dropdownView, items);
+			dropdownView.on('execute', (evt) => {
+				const formattedText = `[[${evt.source.label.replace(
 					/ /g,
 					''
-				) }]]`;
-				editor.model.change( () => {
-					cbFn( editor, formattedText );
-				} );
-			} );
+				)}]]`;
+				editor.model.change(() => {
+					cbFn(editor, formattedText);
+				});
+			});
 			return dropdownView;
-		} );
+		});
 	}
 }
 
@@ -108,32 +108,32 @@ export default class DecoupledEditor extends DecoupledEditorBase {}
 const customColorPalette = [
 	{
 		color: 'hsl(4, 90%, 58%)',
-		label: 'Red'
+		label: 'Red',
 	},
 	{
 		color: 'hsl(340, 82%, 52%)',
-		label: 'Pink'
+		label: 'Pink',
 	},
 	{
 		color: 'hsl(291, 64%, 42%)',
-		label: 'Purple'
+		label: 'Purple',
 	},
 	{
 		color: 'hsl(262, 52%, 47%)',
-		label: 'Deep Purple'
+		label: 'Deep Purple',
 	},
 	{
 		color: 'hsl(231, 48%, 48%)',
-		label: 'Indigo'
+		label: 'Indigo',
 	},
 	{
 		color: 'hsl(207, 90%, 54%)',
-		label: 'Blue'
+		label: 'Blue',
 	},
 	{
 		color: 'hsl(207, 90%, 54%, 0)',
-		label: 'transparent'
-	}
+		label: 'transparent',
+	},
 ];
 
 // Plugins to include in the build.
@@ -173,13 +173,12 @@ DecoupledEditor.builtinPlugins = [
 	Pagination,
 	Paragraph,
 	PasteFromOffice,
-	SimpleUploadAdapter,
 	Table,
 	TableCellProperties,
 	TableProperties,
 	TableToolbar,
 	TextTransformation,
-	Widget
+	Widget,
 ];
 
 // Editor configuration.
@@ -222,11 +221,11 @@ DecoupledEditor.defaultConfig = {
 			'nextPage',
 			'pageNavigation',
 			'|',
-			'insertSmartField'
-		]
+			'insertSmartField',
+		],
 	},
 	image: {
-		styles: [ 'full', 'alignLeft', 'alignRight' ],
+		styles: ['full', 'alignLeft', 'alignRight'],
 		resizeUnit: 'px',
 		toolbar: [
 			'imageStyle:inline',
@@ -234,8 +233,8 @@ DecoupledEditor.defaultConfig = {
 			'imageStyle:breakText',
 			'|',
 			'toggleImageCaption',
-			'imageTextAlternative'
-		]
+			'imageTextAlternative',
+		],
 	},
 	table: {
 		contentToolbar: [
@@ -243,20 +242,20 @@ DecoupledEditor.defaultConfig = {
 			'tableRow',
 			'mergeTableCells',
 			'tableProperties',
-			'tableCellProperties'
+			'tableCellProperties',
 		],
 		tableProperties: {
 			borderColors: customColorPalette,
-			backgroundColors: customColorPalette
+			backgroundColors: customColorPalette,
 		},
 		tableCellProperties: {
 			borderColors: customColorPalette,
-			backgroundColors: customColorPalette
-		}
+			backgroundColors: customColorPalette,
+		},
 	},
 	lineHeight: {
-		options: [ 1, 1.15, 1.5, 2, 2.5 ]
+		options: [1, 1.15, 1.5, 2, 2.5],
 	},
 	// This value must be kept in sync with the language defined in webpack.config.js.
-	language: 'en'
+	language: 'en',
 };
