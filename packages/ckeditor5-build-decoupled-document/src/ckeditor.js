@@ -134,8 +134,8 @@ class MyUploadAdapter {
 		const xhr = (this.xhr = new XMLHttpRequest());
 		const editor = this.editor;
 		console.log({ thisHere: this });
-		const url = editor.config._config.simpleUpload.uploadUrl;
-		xhr.open('POST', url, true);
+		const { uploadUrl } = editor.config._config.simpleUpload;
+		xhr.open('POST', uploadUrl, true);
 		xhr.responseType = 'json';
 	}
 
@@ -191,10 +191,23 @@ class MyUploadAdapter {
 		const editor = this.editor;
 		const api_key =
 			editor.config._config.simpleUpload.headers.Authorization;
+		const {
+			cloudinaryParams,
+			cloudinarySignature,
+		} = editor.config._config.simpleUpload;
 		// Prepare the form data.
 		const data = new FormData();
 
-		data.append('upload', file);
+		data.append('eager', cloudinaryParams.eager);
+		data.append('public_id', cloudinaryParams.public_id);
+		data.append('folder', cloudinaryParams.folder);
+		data.append('timestamp', cloudinaryParams.timestamp);
+		data.append(
+			'signature',
+			cloudinarySignature.data.getCloudinarySignature
+		);
+		data.append('tags', cloudinaryParams.tags);
+		data.append('file', file);
 		data.append('api_key', api_key);
 
 		// Important note: This is the right place to implement security mechanisms
