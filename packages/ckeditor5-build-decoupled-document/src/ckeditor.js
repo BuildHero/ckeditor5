@@ -401,6 +401,9 @@ DecoupledEditor.defaultConfig = {
 			'toggleImageCaption',
 			'imageTextAlternative',
 		],
+		upload: {
+			adapter: MyCustomUploadAdapterPlugin
+		}
 	},
 	table: {
 		contentToolbar: [
