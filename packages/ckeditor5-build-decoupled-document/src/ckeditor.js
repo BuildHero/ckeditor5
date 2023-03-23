@@ -104,6 +104,7 @@ class InsertSmartField extends Plugin {
 
 class MyUploadAdapter {
 	constructor(loader, editor) {
+		console.log('got in here');
 		// The file loader instance to use during the upload.
 		this.loader = loader;
 		this.editor = editor;
@@ -111,6 +112,7 @@ class MyUploadAdapter {
 
 	// Starts the upload process.
 	upload() {
+		console.log('in upload');
 		return this.loader.file.then(
 			(file) =>
 				new Promise((resolve, reject) => {
