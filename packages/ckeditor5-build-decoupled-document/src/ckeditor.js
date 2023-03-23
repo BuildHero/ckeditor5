@@ -224,8 +224,7 @@ class MyUploadAdapter {
 	async _sendRequest(file) {
 		const xhr = this.xhr;
 		const editor = this.editor;
-		const api_key =
-			editor.config._config.simpleUpload.headers.Authorization;
+		const api_key = editor.config._config.simpleUpload.authorization;
 		const {
 			appsyncClient,
 			cloudinaryParams,
