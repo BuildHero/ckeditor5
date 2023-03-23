@@ -402,8 +402,8 @@ DecoupledEditor.defaultConfig = {
 			'imageTextAlternative',
 		],
 		upload: {
-			adapter: MyCustomUploadAdapterPlugin
-		}
+			adapter: MyUploadAdapter,
+		},
 	},
 	table: {
 		contentToolbar: [
