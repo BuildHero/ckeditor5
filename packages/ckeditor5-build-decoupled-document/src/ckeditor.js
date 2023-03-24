@@ -63,43 +63,181 @@ class InsertSmartField extends Plugin {
 			smartFieldsDropdownList: smartFields = []
 		} = smartFieldsConfig;
 
-		componentFactory.add( 'insertSmartField', locale => {
-			const dropdownView = createDropdown( locale );
+		componentFactory.add('insertSmartField', (locale) => {
+			const dropdownView = createDropdown(locale);
 
-			dropdownView.buttonView.set( {
+			dropdownView.buttonView.set({
 				class: 'smartfield-icon',
 				icon: smartfieldIcon,
-				label: t( 'Insert smart field' ),
+				label: t('Insert smart field'),
 				tooltip: true
-			} );
+			});
 
 			// The collection of list items
 			const items = new Collection();
 
-			smartFields.map( option =>
-				items.add( {
+			smartFields.map((option) =>
+				items.add({
 					type: 'button',
-					model: new Model( {
+					model: new Model({
 						label: option,
 						withText: true,
 						tooltip: true
-					} )
-				} )
+					}),
+				})
 			);
 			// Create a dropdown with list of smartfields inside the panel.
-			addListToDropdown( dropdownView, items );
-			dropdownView.on( 'execute', evt => {
-				const formattedText = `[[${ evt.source.label.replace(
+			addListToDropdown(dropdownView, items);
+			dropdownView.on('execute', (evt) => {
+				const formattedText = `[[${evt.source.label.replace(
 					/ /g,
 					''
-				) }]]`;
-				editor.model.change( () => {
-					cbFn( editor, formattedText );
-				} );
-			} );
+				)}]]`;
+				editor.model.change(() => {
+					cbFn(editor, formattedText);
+				});
+			});
 			return dropdownView;
-		} );
+		});
 	}
+}
+
+class CustomImageUploadAdapter {
+	constructor(loader, editor) {
+		this.loader = loader;
+		this.editor = editor;
+	}
+
+	// Starts the upload process.
+	upload() {
+		return this.loader.file.then(
+			(file) =>
+				new Promise((resolve, reject) => {
+					this._initRequest();
+					this._initListeners(resolve, reject, file);
+					this._sendRequest(file);
+				})
+		);
+	}
+
+	// Aborts the upload process.
+	abort() {
+		if (this.xhr) {
+			this.xhr.abort();
+		}
+	}
+
+	// Initializes the XMLHttpRequest object using the URL passed to the constructor.
+	_initRequest() {
+		const xhr = (this.xhr = new XMLHttpRequest());
+		const editor = this.editor;
+		const { uploadUrl } = editor.config._config.simpleUpload;
+		xhr.open('POST', uploadUrl, true);
+		xhr.responseType = 'json';
+	}
+
+	// Initializes XMLHttpRequest listeners.
+	_initListeners(resolve, reject, file) {
+		const xhr = this.xhr;
+		const loader = this.loader;
+		const genericErrorText = `Couldn't upload file: ${file.name}.`;
+
+		xhr.addEventListener('error', () => reject(genericErrorText));
+		xhr.addEventListener('abort', () => reject());
+		xhr.addEventListener('readystatechange', () => {
+			xhr.onreadystatechange = function (e) {
+				const {
+					responseHeaders = {},
+					responseText = '{}',
+					status = '',
+					statusText = '',
+				} = e.target;
+				if (xhr.readyState === 4 && responseHeaders['X-Cld-Error']) {
+					const errorMessage = responseHeaders['X-Cld-Error'];
+					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+				}
+				if (xhr.readyState === 4 && status === 413) {
+					// 413 Payload Too Large error
+					const errorMessage = statusText;
+					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+				}
+				if (xhr.readyState === 4 && status === 400) {
+					// 400 Bad request - invalid image file
+					let resp;
+					try {
+						resp = JSON.parse(responseText);
+					} catch (err) {
+						reject('Unable to parse error message');
+					}
+					const errorMessage = statusText;
+					reject(
+						`invoke::cloudinary-helper::ERROR ${
+							(resp.error && resp.error.message) || errorMessage
+						}`
+					);
+				}
+			};
+		});
+		xhr.addEventListener('load', () => {
+			const response = xhr.response;
+
+			if (!response || response.error) {
+				return reject(
+					response && response.error
+						? response.error.message
+						: genericErrorText
+				);
+			}
+
+			resolve({
+				default: response.url,
+			});
+		});
+
+		// Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
+		// properties which are used e.g. to display the upload progress bar in the editor
+		// user interface.
+		if (xhr.upload) {
+			xhr.upload.addEventListener('progress', (evt) => {
+				if (evt.lengthComputable) {
+					loader.uploadTotal = evt.total;
+					loader.uploaded = evt.loaded;
+				}
+			});
+		}
+	}
+
+	// Prepares the data and sends the request.
+	async _sendRequest(file) {
+		const xhr = this.xhr;
+		const editor = this.editor;
+		const {
+			authorization: api_key,
+			cloudinaryParams,
+			generateSignatureCallback,
+		} = editor.config._config.simpleUpload;
+		const signature = await generateSignatureCallback();
+		const data = new FormData();
+
+		data.append('eager', cloudinaryParams.eager);
+		data.append('public_id', cloudinaryParams.public_id);
+		data.append('folder', cloudinaryParams.folder);
+		data.append('timestamp', cloudinaryParams.timestamp);
+		data.append('signature', signature.data.getCloudinarySignature);
+		data.append('tags', `${cloudinaryParams.tags}`);
+		data.append('file', file);
+		data.append('api_key', api_key);
+
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+		this.xhr.send(data);
+	}
+}
+
+function CustomImageUploadAdapterPlugin(editor) {
+	editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+		return new CustomImageUploadAdapter(loader, editor);
+	};
 }
 
 export default class DecoupledEditor extends DecoupledEditorBase {}
@@ -177,7 +315,8 @@ DecoupledEditor.builtinPlugins = [
 	TableProperties,
 	TableToolbar,
 	TextTransformation,
-	Widget
+	Widget,
+	CustomImageUploadAdapterPlugin
 ];
 
 // Editor configuration.
@@ -208,8 +347,7 @@ DecoupledEditor.defaultConfig = {
 			'|',
 			'link',
 			'blockquote',
-			// Removing image btn until uploading images enabled
-			// 'uploadImage',
+			'uploadImage',
 			'insertTable',
 			'mediaEmbed',
 			'|',
@@ -224,7 +362,7 @@ DecoupledEditor.defaultConfig = {
 		]
 	},
 	image: {
-		styles: [ 'full', 'alignLeft', 'alignRight' ],
+		styles: ['full', 'alignLeft', 'alignRight'],
 		resizeUnit: 'px',
 		toolbar: [
 			'imageStyle:inline',
@@ -253,7 +391,7 @@ DecoupledEditor.defaultConfig = {
 		}
 	},
 	lineHeight: {
-		options: [ 1, 1.15, 1.5, 2, 2.5 ]
+		options: [1, 1.15, 1.5, 2, 2.5]
 	},
 	// This value must be kept in sync with the language defined in webpack.config.js.
 	language: 'en'
