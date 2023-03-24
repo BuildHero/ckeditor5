@@ -226,23 +226,14 @@ class MyUploadAdapter {
 	async _sendRequest(file) {
 		const xhr = this.xhr;
 		const editor = this.editor;
-		const api_key = editor.config._config.simpleUpload.authorization;
 		const {
-			appsyncClient,
+			authorization: api_key,
 			cloudinaryParams,
-			getCloudinarySignatureQuery,
 			generateSignatureCallback,
 		} = editor.config._config.simpleUpload;
-		// const signature = await appsyncClient.query(
-		// 	getCloudinarySignatureQuery,
-		// 	{
-		// 		data: cloudinaryParams,
-		// 		invalidate: true,
-		// 	}
-		// );
 		const signature = await generateSignatureCallback();
-		// Prepare the form data.
 		const data = new FormData();
+
 		data.append('eager', cloudinaryParams.eager);
 		data.append('public_id', cloudinaryParams.public_id);
 		data.append('folder', cloudinaryParams.folder);
@@ -252,13 +243,8 @@ class MyUploadAdapter {
 		data.append('file', file);
 		data.append('api_key', api_key);
 
-		// Important note: This is the right place to implement security mechanisms
-		// like authentication and CSRF protection. For instance, you can use
-		// XMLHttpRequest.setRequestHeader() to set the request headers containing
-		// the CSRF token generated earlier by your application.
 		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-		// Send the request.
 		this.xhr.send(data);
 	}
 }
@@ -401,9 +387,9 @@ DecoupledEditor.defaultConfig = {
 			'toggleImageCaption',
 			'imageTextAlternative',
 		],
-		// upload: {
-		// 	adapter: MyUploadAdapter,
-		// },
+		upload: {
+			adapter: MyUploadAdapter,
+		},
 	},
 	table: {
 		contentToolbar: [
