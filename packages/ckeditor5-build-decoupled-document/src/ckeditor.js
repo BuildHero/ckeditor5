@@ -102,16 +102,14 @@ class InsertSmartField extends Plugin {
 	}
 }
 
-class MyUploadAdapter {
+class CustomImageUploadAdapter {
 	constructor(loader, editor) {
-		console.log('got in here');
 		this.loader = loader;
 		this.editor = editor;
 	}
 
 	// Starts the upload process.
 	upload() {
-		console.log('in upload');
 		return this.loader.file.then(
 			(file) =>
 				new Promise((resolve, reject) => {
@@ -134,7 +132,6 @@ class MyUploadAdapter {
 	_initRequest() {
 		const xhr = (this.xhr = new XMLHttpRequest());
 		const editor = this.editor;
-		console.log({ thisHere: this });
 		const { uploadUrl } = editor.config._config.simpleUpload;
 		xhr.open('POST', uploadUrl, true);
 		xhr.responseType = 'json';
@@ -238,9 +235,9 @@ class MyUploadAdapter {
 	}
 }
 
-function MyCustomUploadAdapterPlugin(editor) {
+function CustomImageUploadAdapterPlugin(editor) {
 	editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-		return new MyUploadAdapter(loader, editor);
+		return new CustomImageUploadAdapter(loader, editor);
 	};
 }
 
@@ -320,7 +317,7 @@ DecoupledEditor.builtinPlugins = [
 	TableToolbar,
 	TextTransformation,
 	Widget,
-	// MyCustomUploadAdapterPlugin,
+	CustomImageUploadAdapterPlugin,
 ];
 
 // Editor configuration.
@@ -376,9 +373,6 @@ DecoupledEditor.defaultConfig = {
 			'toggleImageCaption',
 			'imageTextAlternative',
 		],
-		// upload: {
-		// 	adapter: MyUploadAdapter,
-		// },
 	},
 	table: {
 		contentToolbar: [
