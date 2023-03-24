@@ -324,7 +324,7 @@ DecoupledEditor.builtinPlugins = [
 	PageBreak,
 	Pagination,
 	Paragraph,
-	// PasteFromOffice,
+	PasteFromOffice,
 	Table,
 	TableCellProperties,
 	TableProperties,
