@@ -263,7 +263,6 @@ class MyUploadAdapter {
 
 function MyCustomUploadAdapterPlugin(editor) {
 	editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-		// Configure the URL to the upload script in your back-end here!
 		return new MyUploadAdapter(loader, editor);
 	};
 }
@@ -375,7 +374,6 @@ DecoupledEditor.defaultConfig = {
 			'|',
 			'link',
 			'blockquote',
-			// Removing image btn until uploading images enabled
 			'uploadImage',
 			'insertTable',
 			'mediaEmbed',
@@ -401,9 +399,9 @@ DecoupledEditor.defaultConfig = {
 			'toggleImageCaption',
 			'imageTextAlternative',
 		],
-		upload: {
-			adapter: MyUploadAdapter,
-		},
+		// upload: {
+		// 	adapter: MyUploadAdapter,
+		// },
 	},
 	table: {
 		contentToolbar: [
