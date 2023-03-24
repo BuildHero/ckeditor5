@@ -231,14 +231,16 @@ class MyUploadAdapter {
 			appsyncClient,
 			cloudinaryParams,
 			getCloudinarySignatureQuery,
+			generateSignatureCallback,
 		} = editor.config._config.simpleUpload;
-		const signature = await appsyncClient.query(
-			getCloudinarySignatureQuery,
-			{
-				data: cloudinaryParams,
-				invalidate: true,
-			}
-		);
+		// const signature = await appsyncClient.query(
+		// 	getCloudinarySignatureQuery,
+		// 	{
+		// 		data: cloudinaryParams,
+		// 		invalidate: true,
+		// 	}
+		// );
+		const signature = await generateSignatureCallback();
 		// Prepare the form data.
 		const data = new FormData();
 		data.append('eager', cloudinaryParams.eager);
