@@ -1,6 +1,6 @@
 {
   "name": "@ckeditor/ckeditor5-core",
-  "version": "29.2.0",
+  "version": "36.0.0",
   "description": "The core architecture of CKEditor 5 – the best browser-based rich text editor.",
   "keywords": [
     "wysiwyg",
@@ -23,28 +23,28 @@
   ],
   "main": "src/index.js",
   "dependencies": {
-    "@ckeditor/ckeditor5-engine": "^29.2.0",
-    "@ckeditor/ckeditor5-ui": "^29.2.0",
-    "@ckeditor/ckeditor5-utils": "^29.2.0",
+    "@ckeditor/ckeditor5-engine": "^36.0.0",
+    "@ckeditor/ckeditor5-ui": "^36.0.0",
+    "@ckeditor/ckeditor5-utils": "^36.0.0",
     "lodash-es": "^4.17.15"
   },
   "devDependencies": {
-    "@ckeditor/ckeditor5-autoformat": "^29.2.0",
-    "@ckeditor/ckeditor5-basic-styles": "^29.2.0",
-    "@ckeditor/ckeditor5-block-quote": "^29.2.0",
-    "@ckeditor/ckeditor5-editor-classic": "^29.2.0",
-    "@ckeditor/ckeditor5-essentials": "^29.2.0",
-    "@ckeditor/ckeditor5-heading": "^29.2.0",
-    "@ckeditor/ckeditor5-image": "^29.2.0",
-    "@ckeditor/ckeditor5-indent": "^29.2.0",
-    "@ckeditor/ckeditor5-link": "^29.2.0",
-    "@ckeditor/ckeditor5-list": "^29.2.0",
-    "@ckeditor/ckeditor5-media-embed": "^29.2.0",
-    "@ckeditor/ckeditor5-paragraph": "^29.2.0",
-    "@ckeditor/ckeditor5-table": "^29.2.0"
+    "@ckeditor/ckeditor5-autoformat": "^36.0.0",
+    "@ckeditor/ckeditor5-basic-styles": "^36.0.0",
+    "@ckeditor/ckeditor5-block-quote": "^36.0.0",
+    "@ckeditor/ckeditor5-editor-classic": "^36.0.0",
+    "@ckeditor/ckeditor5-essentials": "^36.0.0",
+    "@ckeditor/ckeditor5-heading": "^36.0.0",
+    "@ckeditor/ckeditor5-image": "^36.0.0",
+    "@ckeditor/ckeditor5-indent": "^36.0.0",
+    "@ckeditor/ckeditor5-link": "^36.0.0",
+    "@ckeditor/ckeditor5-list": "^36.0.0",
+    "@ckeditor/ckeditor5-media-embed": "^36.0.0",
+    "@ckeditor/ckeditor5-paragraph": "^36.0.0",
+    "@ckeditor/ckeditor5-table": "^36.0.0"
   },
   "engines": {
-    "node": ">=12.0.0",
+    "node": ">=14.0.0",
     "npm": ">=5.7.1"
   },
   "author": "CKSource (http://cksource.com/)",

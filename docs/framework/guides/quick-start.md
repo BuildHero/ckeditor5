@@ -11,8 +11,8 @@ This guide will show you how to initialize CKEditor 5 rich-text editor from sour
 
 The CKEditor 5 Framework is made of several [npm packages](https://npmjs.com). To install it you need:
 
-* [Node.js](https://nodejs.org/en/) 12.0.0+
-* npm 5.7.1+ (**note:** some npm 5+ versions were known to cause [problems](https://github.com/npm/npm/issues/16991), especially with deduplicating packages; upgrade npm when in doubt)
+-   [Node.js](https://nodejs.org/en/) 14.0.0+
+-   npm 5.7.1+ (**note:** some npm 5+ versions were known to cause [problems](https://github.com/npm/npm/issues/16991), especially with deduplicating packages; upgrade npm when in doubt)
 
 Besides Node.js and npm you also need [webpack@4](https://webpack.js.org) with a few additional packages to use the framework. They are needed to bundle the source code. Read more about building CKEditor 5 in the {@link builds/guides/integration/advanced-setup CKEditor 5 Builds Advanced setup} guide.
 
@@ -38,19 +38,19 @@ The minimal webpack configuration needed to enable building CKEditor 5 is:
 ```js
 // webpack.config.js
 
-'use strict';
+"use strict";
 
-const path = require( 'path' );
-const { styles } = require( '@ckeditor/ckeditor5-dev-utils' );
+const path = require("path");
+const { styles } = require("@ckeditor/ckeditor5-dev-utils");
 
 module.exports = {
 	// https://webpack.js.org/configuration/entry-context/
-	entry: './app.js',
+	entry: "./app.js",
 
 	// https://webpack.js.org/configuration/output/
 	output: {
-		path: path.resolve( __dirname, 'dist' ),
-		filename: 'bundle.js'
+		path: path.resolve(__dirname, "dist"),
+		filename: "bundle.js",
 	},
 
 	module: {
@@ -58,40 +58,42 @@ module.exports = {
 			{
 				test: /ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
 
-				use: [ 'raw-loader' ]
+				use: ["raw-loader"],
 			},
 			{
 				test: /ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css$/,
 
 				use: [
 					{
-						loader: 'style-loader',
+						loader: "style-loader",
 						options: {
-							injectType: 'singletonStyleTag',
+							injectType: "singletonStyleTag",
 							attributes: {
-								'data-cke': true
-							}
-						}
+								"data-cke": true,
+							},
+						},
 					},
 					{
-						loader: 'postcss-loader',
-						options: styles.getPostCssConfig( {
+						loader: "postcss-loader",
+						options: styles.getPostCssConfig({
 							themeImporter: {
-								themePath: require.resolve( '@ckeditor/ckeditor5-theme-lark' )
+								themePath: require.resolve(
+									"@ckeditor/ckeditor5-theme-lark"
+								),
 							},
-							minify: true
-						} )
-					}
-				]
-			}
-		]
+							minify: true,
+						}),
+					},
+				],
+			},
+		],
 	},
 
 	// Useful for debugging.
-	devtool: 'source-map',
+	devtool: "source-map",
 
 	// By default webpack logs warnings if the bundle is bigger than 200kb.
-	performance: { hints: false }
+	performance: { hints: false },
 };
 ```
 
@@ -119,29 +121,29 @@ Based on these packages you can create a simple application.
 <info-box warning>
 	Note that in this guide the editor class is used directly (i.e. we use `@ckeditor/ckeditor5-editor-classic` instead of `@ckeditor/ckeditor5-build-classic`).
 
-	No {@link builds/guides/overview editor builds} are used because adding new plugins to them requires rebuilding them anyway. This can be done by {@link builds/guides/integration/installing-plugins customizing a build} or by including CKEditor 5 source into your application (like in this guide).
+    No {@link builds/guides/overview editor builds} are used because adding new plugins to them requires rebuilding them anyway. This can be done by {@link builds/guides/integration/installing-plugins customizing a build} or by including CKEditor 5 source into your application (like in this guide).
+
 </info-box>
 
 ```js
 // app.js
 
-import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
-import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
-import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
-import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
-import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
+import ClassicEditor from "@ckeditor/ckeditor5-editor-classic/src/classiceditor";
+import Essentials from "@ckeditor/ckeditor5-essentials/src/essentials";
+import Paragraph from "@ckeditor/ckeditor5-paragraph/src/paragraph";
+import Bold from "@ckeditor/ckeditor5-basic-styles/src/bold";
+import Italic from "@ckeditor/ckeditor5-basic-styles/src/italic";
 
-ClassicEditor
-	.create( document.querySelector( '#editor' ), {
-		plugins: [ Essentials, Paragraph, Bold, Italic ],
-		toolbar: [ 'bold', 'italic' ]
-	} )
-	.then( editor => {
-		console.log( 'Editor was initialized', editor );
-	} )
-	.catch( error => {
-		console.error( error.stack );
-	} );
+ClassicEditor.create(document.querySelector("#editor"), {
+	plugins: [Essentials, Paragraph, Bold, Italic],
+	toolbar: ["bold", "italic"],
+})
+	.then((editor) => {
+		console.log("Editor was initialized", editor);
+	})
+	.catch((error) => {
+		console.error(error.stack);
+	});
 ```
 
 You can now run webpack to build the application. To do that, call the `webpack` executable:
@@ -171,9 +173,10 @@ npm adds `./node_modules/.bin/` to the `PATH` automatically, so in this case you
 <info-box>
 	Use `webpack --mode production` if you want to build a minified and optimized application. See more in the [webpack documentation](https://webpack.js.org/concepts/mode/).
 
-	**Note:** Prior to version 1.2.7, `uglifyjs-webpack-plugin` (the default minifier used by webpack) had a bug which caused webpack to crash with the following error: `TypeError: Assignment to constant variable.`. If you experienced this error, make sure that your `node_modules` contains an up-to-date version of this package (and that webpack uses this version).
-	
-	**Note:** CKEditor 5 Builds use [`Terser`](https://github.com/terser/terser) instead of `uglifyjs-webpack-plugin` because [the later one seems to be unsupported anymore](https://github.com/ckeditor/ckeditor5/issues/1353). 
+    **Note:** Prior to version 1.2.7, `uglifyjs-webpack-plugin` (the default minifier used by webpack) had a bug which caused webpack to crash with the following error: `TypeError: Assignment to constant variable.`. If you experienced this error, make sure that your `node_modules` contains an up-to-date version of this package (and that webpack uses this version).
+
+    **Note:** CKEditor 5 Builds use [`Terser`](https://github.com/terser/terser) instead of `uglifyjs-webpack-plugin` because [the later one seems to be unsupported anymore](https://github.com/ckeditor/ckeditor5/issues/1353).
+
 </info-box>
 
 If everything worked correctly, you should see:
@@ -201,7 +204,7 @@ Finally, it is time to create an HTML page:
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta charset="utf-8">
+		<meta charset="utf-8" />
 		<title>CKEditor 5 Framework – Quick start</title>
 	</head>
 	<body>

@@ -11,7 +11,7 @@
 
 import CKEditorError from './ckeditorerror';
 
-const version = '29.2.0';
+const version = '36.0.0';
 
 export default version;
 
@@ -19,7 +19,7 @@ export default version;
 const windowOrGlobal = typeof window === 'object' ? window : global;
 
 /* istanbul ignore next */
-if ( windowOrGlobal.CKEDITOR_VERSION ) {
+if (windowOrGlobal.CKEDITOR_VERSION) {
 	/**
 	 * This error is thrown when due to a mistake in how CKEditor 5 was installed or initialized, some
 	 * of its modules were duplicated (evaluated and executed twice). Module duplication leads to inevitable runtime
@@ -148,10 +148,7 @@ if ( windowOrGlobal.CKEDITOR_VERSION ) {
 	 *
 	 * @error ckeditor-duplicated-modules
 	 */
-	throw new CKEditorError(
-		'ckeditor-duplicated-modules',
-		null
-	);
+	throw new CKEditorError('ckeditor-duplicated-modules', null);
 } else {
 	windowOrGlobal.CKEDITOR_VERSION = version;
 }

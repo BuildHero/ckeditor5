@@ -26,7 +26,7 @@ npm install --save-dev @ckeditor/ckeditor5-inspector
 and then either import it as a module:
 
 ```js
-import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
+import CKEditorInspector from "@ckeditor/ckeditor5-inspector";
 ```
 
 or as a plain `<script>` tag in the HTML of your application:
@@ -60,8 +60,8 @@ You can specify the name of the editor when attaching to make working with multi
 
 ```js
 // Inspecting two editor instances at the same time.
-CKEditorInspector.attach( 'header-editor', editor );
-CKEditorInspector.attach( 'body-editor', editor );
+CKEditorInspector.attach("header-editor", editor);
+CKEditorInspector.attach("body-editor", editor);
 ```
 
 The editor switcher is in the upper–right corner of the inspector panel.
@@ -74,7 +74,7 @@ Click the <b>"Inspect editor"</b> button below to attach the inspector to the ed
 
 ### Compatibility
 
-The inspector works with CKEditor 5 [v12.0.0](https://github.com/ckeditor/ckeditor5/releases/tag/v12.0.0)+.
+The inspector works with CKEditor 5 [v14.0.0](https://github.com/ckeditor/ckeditor5/releases/tag/v14.0.0)+.
 
 ### Contributing to the inspector
 
@@ -93,17 +93,15 @@ They allow for "stringifying" the {@link framework/guides/architecture/editing-e
 For instance, to take a peek at the editor model, you could use the {@link module:engine/dev-utils/model~getData `getData()`} helper:
 
 ```js
-import { getData } from '@ckeditor/ckeditor5-engine/src/dev-utils/model';
+import { getData } from "@ckeditor/ckeditor5-engine/src/dev-utils/model";
 
 // ...
 
-ClassicEditor
-	.create( '<p>Hello <b>world</b>!</p>' )
-	.then( editor => {
-		console.log( getData( editor.model ) );
+ClassicEditor.create("<p>Hello <b>world</b>!</p>").then((editor) => {
+	console.log(getData(editor.model));
 
-		// -> '<paragraph>[]Hello <$text bold="true">world</$text>!</paragraph>'
-	} );
+	// -> '<paragraph>[]Hello <$text bold="true">world</$text>!</paragraph>'
+});
 ```
 
 See the helper documentation to learn more about useful options.
