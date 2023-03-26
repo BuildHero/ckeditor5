@@ -1,11 +1,13 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-/* globals window */
+/* globals window, DOMParser */
 
 import XmlDataProcessor from '../../src/dataprocessor/xmldataprocessor';
+import BasicHtmlWriter from '../../src/dataprocessor/basichtmlwriter';
+import DomConverter from '../../src//view/domconverter';
 import xssTemplates from '../../tests/dataprocessor/_utils/xsstemplates';
 import ViewDocumentFragment from '../../src/view/documentfragment';
 import ViewDocument from '../../src/view/document';
@@ -18,6 +20,22 @@ describe( 'XmlDataProcessor', () => {
 	beforeEach( () => {
 		viewDocument = new ViewDocument( new StylesProcessor() );
 		dataProcessor = new XmlDataProcessor( viewDocument );
+	} );
+
+	describe( 'constructor', () => {
+		it( 'should set public properties', () => {
+			expect( dataProcessor ).to.have.property( 'namespaces' );
+			expect( dataProcessor ).to.have.property( 'domParser' );
+			expect( dataProcessor ).to.have.property( 'domConverter' );
+			expect( dataProcessor ).to.have.property( 'htmlWriter' );
+			expect( dataProcessor ).to.have.property( 'skipComments' );
+
+			expect( dataProcessor.namespaces ).to.be.an.instanceOf( Array );
+			expect( dataProcessor.domParser ).to.be.an.instanceOf( DOMParser );
+			expect( dataProcessor.domConverter ).to.be.an.instanceOf( DomConverter );
+			expect( dataProcessor.htmlWriter ).to.be.an.instanceOf( BasicHtmlWriter );
+			expect( dataProcessor.skipComments ).to.be.true;
+		} );
 	} );
 
 	describe( 'toView', () => {
@@ -136,6 +154,38 @@ describe( 'XmlDataProcessor', () => {
 			dataProcessor.useFillerType( 'default' );
 
 			expect( dataProcessor.toData( fragment ) ).to.equal( '<p>&nbsp;</p>' );
+		} );
+	} );
+
+	describe( 'skipComments', () => {
+		it( 'should skip comments when `true`', () => {
+			const fragment = dataProcessor.toView(
+				'<!-- Comment 1 -->' +
+				'<foo>' +
+					'bar' +
+					'<!-- Comment 2 -->' +
+					'baz' +
+				'</foo>' +
+				'<!-- Comment 3 -->'
+			);
+
+			expect( stringify( fragment ) ).to.equal( '<foo>barbaz</foo>' );
+		} );
+
+		it( 'should preserve comments when `false`', () => {
+			dataProcessor.skipComments = false;
+
+			const fragment = dataProcessor.toView(
+				'<!-- Comment 1 -->' +
+				'<foo>' +
+					'bar' +
+					'<!-- Comment 2 -->' +
+					'baz' +
+				'</foo>' +
+				'<!-- Comment 3 -->'
+			);
+
+			expect( stringify( fragment ) ).to.equal( '<$comment></$comment><foo>bar<$comment></$comment>baz</foo><$comment></$comment>' );
 		} );
 	} );
 } );

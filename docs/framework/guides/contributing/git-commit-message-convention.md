@@ -49,7 +49,7 @@ Each commit can contain additional notes that will be inserted into the changelo
 
 If any change contains the `MAJOR BREAKING CHANGE` note, the next release will automatically be marked as `major`.
 
-For reference on how to identify minor or major breaking change see the {@link framework/guides/support/versioning-policy versioning policy guide}.
+For reference on how to identify minor or major breaking change see the {@link updating/versioning-policy versioning policy guide}.
 
 Each `MAJOR BREAKING CHANGE` or `MINOR BREAKING CHANGE` note must be followed by the package name.
 
@@ -81,7 +81,7 @@ When creating PRs that address specific issues, use the following messages to in
 
 ### Methods name syntax
 
-All methods mentioned in the git commit message should use the **#** sign inbetween the class name and the method name. And example of a properly named method:
+All methods mentioned in the git commit message should use the **#** sign between the class name and the method name. And example of a properly named method:
 
 ```
 MarkerCollection#has()
@@ -172,7 +172,7 @@ Changelog
 
 ## [1.0.0](https://github.com/ckeditor/ckeditor5/compare/v1.0.0...v0.0.1) (2017-01-04)
 
-### MAJOR BREAKING CHANGES [ℹ️](https://ckeditor.com/docs/ckeditor5/latest/framework/guides/support/versioning-policy.html#major-and-minor-breaking-changes)
+### MAJOR BREAKING CHANGES [ℹ️](https://ckeditor.com/docs/ckeditor5/latest/support/versioning-policy.html#major-and-minor-breaking-changes)
 
 * **[utils](http://npmjs.com/package/@ckeditor/ckeditor5-utils)**: The `utils#foo()` method was moved to the `engine` package. See [#9](https://github.com/ckeditor/ckeditor5/issue/9).
 
@@ -191,6 +191,20 @@ Changelog
 
 * **[utils](http://npmjs.com/package/@ckeditor/ckeditor5-utils)**: Extracted the `utils#foo()` to a separate package. Thanks to [@CKEditor](https://github.com/CKEditor). ([e8cc04f](https://github.com/ckeditor/ckeditor5/commit/e8cc04f))
 ```
+
+### Fixing errors
+
+If the commit message was wrong but it was already too late to fix (e.g. already merged into `master`), you can push an empty commit with the correct message straight to `master`:
+
+```
+git checkout master
+git commit --allow-empty # Fix the message in the commit
+git push origin master
+```
+
+<info-box>
+	Two commits for the same pull request will require **manual deduplication** during the changelog generation process. To reduce the noise, **avoid this technique for minor errors** like spelling or grammar: changelog entries will be checked and corrected anyway. Use it to add missing `BREAKING CHANGE` entries or fix wrong ticket numbers in `Closes #123` (critical information for integrators). You can also notify the team about the fix.
+</info-box>
 
 ## Handling pull requests
 
@@ -212,7 +226,7 @@ As a reviewer, remember that the message will end up in the changelog and must b
 
 When closing a PR, remember to copy the source of the message to the textarea with the merge commit message:
 
-{@img assets/img/closing-a-pr.gif Screencast how to copy a source version of the suggested commit message when closing a PR.}
+{@img assets/img/closing-a-pr.gif 998 Screencast how to copy a source version of the suggested commit message when closing a PR.}
 
 ### Giving credit
 

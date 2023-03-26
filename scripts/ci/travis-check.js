@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -9,30 +9,46 @@
 
 'use strict';
 
+const checkPackagesCodeCoverage = require( './check-packages-code-coverage' );
+const triggerCkeditor5ContinuousIntegration = require( './trigger-ckeditor5-continuous-integration' );
 const childProcess = require( 'child_process' );
-const crypto = require( 'crypto' );
 const path = require( 'path' );
+const TravisFolder = require( './travis-folder' );
+const { red, cyan, green, magenta } = require( './ansi-colors' );
 
 const ROOT_DIRECTORY = path.join( __dirname, '..', '..' );
 const { TRAVIS_JOB_TYPE } = process.env;
 
-const RED = '\x1B[0;31m';
-const GREEN = '\x1B[32m';
-const CYAN = '\x1B[36;1m';
-const MAGENTA = '\x1B[35;1m';
-const NO_COLOR = '\x1B[0m';
+const travisFolder = new TravisFolder();
+
+console.log( cyan( `\nRunning the "${ TRAVIS_JOB_TYPE }" build.\n` ) );
 
 // Tests + Code coverage.
 if ( TRAVIS_JOB_TYPE === 'Tests' ) {
-	console.log( `\n${ CYAN }Running the "Tests" build.${ NO_COLOR }\n` );
+	const coverageExitCode = checkPackagesCodeCoverage();
 
-	exec( 'node', './scripts/ci/check-packages-code-coverage.js' );
+	if ( coverageExitCode ) {
+		process.exit( coverageExitCode );
+	}
+
+	const repository = 'ckeditor/ckeditor5';
+	const lastCommit = childProcess.execSync( 'git rev-parse HEAD' ).toString();
+
+	const promise = triggerCkeditor5ContinuousIntegration( repository, lastCommit );
+
+	if ( promise ) {
+		promise.then( response => {
+			if ( response.error_message ) {
+				throw new Error( `CI trigger failed: "${ response.error_message }".` );
+			}
+
+			console.log( 'CI triggered successfully.' );
+		} );
+	}
 }
 
 // Verifying the code style.
 if ( TRAVIS_JOB_TYPE === 'Validation' ) {
-	console.log( `\n${ CYAN }Running the "Validation" build.${ NO_COLOR }\n` );
-
 	// Linters.
 	exec( 'yarn', 'run', 'lint' );
 	exec( 'yarn', 'run', 'stylelint' );
@@ -40,6 +56,8 @@ if ( TRAVIS_JOB_TYPE === 'Validation' ) {
 	// Verifying manual tests.
 	exec( 'yarn', 'run', 'dll:build' );
 	exec( 'sh', './scripts/check-manual-tests.sh', '-r', 'ckeditor5', '-f', 'ckeditor5' );
+
+	exec( 'node', './scripts/ci/check-manual-tests-directory-structure.js' );
 }
 
 /**
@@ -52,43 +70,7 @@ if ( TRAVIS_JOB_TYPE === 'Validation' ) {
  * @param {..String} command
  */
 function exec( ...command ) {
-	const travis = {
-		_lastTimerId: null,
-		_lastStartTime: null,
-
-		foldStart() {
-			console.log( `travis_fold:start:script${ MAGENTA }$ ${ command.join( ' ' ) }${ NO_COLOR }` );
-			this._timeStart();
-		},
-
-		foldEnd() {
-			this._timeFinish();
-			console.log( '\ntravis_fold:end:script\n' );
-		},
-
-		_timeStart() {
-			const nanoSeconds = process.hrtime.bigint();
-
-			this._lastTimerId = crypto.createHash( 'md5' ).update( nanoSeconds.toString() ).digest( 'hex' );
-			this._lastStartTime = nanoSeconds;
-
-			// Intentional direct write to stdout, to manually control EOL.
-			process.stdout.write( `travis_time:start:${ this._lastTimerId }\r\n` );
-		},
-
-		_timeFinish() {
-			const travisEndTime = process.hrtime.bigint();
-			const duration = travisEndTime - this._lastStartTime;
-
-			// Intentional direct write to stdout, to manually control EOL.
-			process.stdout.write(
-				`\ntravis_time:end:${ this._lastTimerId }:start=${ this._lastStartTime },` +
-				`finish=${ travisEndTime },duration=${ duration }\r\n`
-			);
-		}
-	};
-
-	travis.foldStart();
+	travisFolder.start( 'script', magenta( '$ ' + command.join( ' ' ) ) );
 
 	const childProcessStatus = childProcess.spawnSync( command[ 0 ], command.slice( 1 ), {
 		encoding: 'utf8',
@@ -99,11 +81,11 @@ function exec( ...command ) {
 	} );
 
 	const EXIT_CODE = childProcessStatus.status;
-	const COLOR = EXIT_CODE ? RED : GREEN;
+	const color = EXIT_CODE ? red : green;
 
-	travis.foldEnd();
+	travisFolder.end( 'script' );
 
-	console.log( `${ COLOR }The command "${ command.join( ' ' ) }" exited with ${ EXIT_CODE }.${ NO_COLOR }\n` );
+	console.log( color( `The command "${ command.join( ' ' ) }" exited with ${ EXIT_CODE }.\n` ) );
 
 	if ( childProcessStatus.status ) {
 		// An error occurred. Break the entire script.

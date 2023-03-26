@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -8,10 +8,10 @@
 import VirtualTestEditor from '@ckeditor/ckeditor5-core/tests/_utils/virtualtesteditor';
 import ClassicTestEditor from '@ckeditor/ckeditor5-core/tests/_utils/classictesteditor';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
-import DataTransfer from '@ckeditor/ckeditor5-clipboard/src/datatransfer';
+import DataTransfer from '@ckeditor/ckeditor5-engine/src/view/datatransfer';
 import Clipboard from '@ckeditor/ckeditor5-clipboard/src/clipboard';
 import LinkImage from '@ckeditor/ckeditor5-link/src/linkimage';
-import ListEditing from '@ckeditor/ckeditor5-list/src/listediting';
+import ListEditing from '@ckeditor/ckeditor5-list/src/list/listediting';
 
 import testUtils from '@ckeditor/ckeditor5-core/tests/_utils/utils';
 import normalizeHtml from '@ckeditor/ckeditor5-utils/tests/_utils/normalizehtml';
@@ -136,7 +136,7 @@ describe( 'ImageInlineEditing', () => {
 			it( 'should convert', () => {
 				setModelData( model, '<paragraph><imageInline src="/assets/sample.png" alt="alt text"></imageInline></paragraph>' );
 
-				expect( editor.getData() ).to.equal( '<p><img alt="alt text" src="/assets/sample.png"></p>' );
+				expect( editor.getData() ).to.equal( '<p><img src="/assets/sample.png" alt="alt text"></p>' );
 			} );
 
 			it( 'should convert without alt attribute', () => {
@@ -194,7 +194,7 @@ describe( 'ImageInlineEditing', () => {
 					'</imageInline></paragraph>'
 				);
 
-				expect( editor.getData() ).to.equal( '<p><img alt="alt text" src="/assets/sample.png"></p>' );
+				expect( editor.getData() ).to.equal( '<p><img src="/assets/sample.png" alt="alt text"></p>' );
 			} );
 
 			it( 'should not convert srcset attribute if has wrong data', () => {
@@ -210,7 +210,7 @@ describe( 'ImageInlineEditing', () => {
 					writer.removeAttribute( 'srcset', imageInline );
 				} );
 
-				expect( editor.getData() ).to.equal( '<p><img alt="alt text" src="/assets/sample.png"></p>' );
+				expect( editor.getData() ).to.equal( '<p><img src="/assets/sample.png" alt="alt text"></p>' );
 			} );
 		} );
 
@@ -243,11 +243,11 @@ describe( 'ImageInlineEditing', () => {
 					.to.equal( '<paragraph><imageInline src="/assets/sample.png"></imageInline></paragraph>' );
 			} );
 
-			it( 'should not convert without src attribute', () => {
+			it( 'should convert without src attribute', () => {
 				editor.setData( '<p><img alt="alt text" /></p>' );
 
 				expect( getModelData( model, { withoutSelection: true } ) )
-					.to.equal( '<paragraph></paragraph>' );
+					.to.equal( '<paragraph><imageInline alt="alt text"></imageInline></paragraph>' );
 			} );
 
 			it( 'should not convert in wrong context', () => {
@@ -276,6 +276,14 @@ describe( 'ImageInlineEditing', () => {
 
 				expect( getModelData( model, { withoutSelection: true } ) )
 					.to.equal( '<paragraph></paragraph>' );
+			} );
+
+			it( 'should consume the src attribute on <img>', () => {
+				editor.data.upcastDispatcher.on( 'element:img', ( evt, data, conversionApi ) => {
+					expect( conversionApi.consumable.test( data.viewItem, { attributes: 'src' } ) ).to.be.false;
+				}, { priority: 'low' } );
+
+				editor.setData( '<p><img src="/assets/sample.png" alt="alt text" /></p>' );
 			} );
 
 			it( 'should dispatch conversion for nested elements', () => {
@@ -488,10 +496,12 @@ describe( 'ImageInlineEditing', () => {
 					);
 				} );
 
-				it( 'should not convert and autohoist image element without src attribute (which is not allowed by schema)', () => {
+				it( 'should convert and autohoist image element without src attribute', () => {
 					editor.setData( '<div>foo<img alt="foo" />bar</div>' );
 
-					expect( getModelData( model, { withoutSelection: true } ) ).to.equal( '<div>foobar</div>' );
+					expect( getModelData( model, { withoutSelection: true } ) ).to.equal(
+						'<div>foo<imageInline alt="foo"></imageInline>bar</div>'
+					);
 				} );
 			} );
 		} );

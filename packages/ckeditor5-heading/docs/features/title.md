@@ -5,7 +5,7 @@ menu-title: Document title
 
 # Document title
 
-The {@link module:heading/title~Title} feature enables support for adding the title field to your document. It helps ensure that there will always be a single title field at the beginning of the document.
+The title feature enables support for adding the title field to your document. It helps ensure that there will always be a single title field at the beginning of the document.
 
 This feature can be used to implement a rich-text editor with a clear division of content into the title and body sections, similar to solutions available in Medium, Grammarly, Slack post editor or some content management systems.
 
@@ -35,14 +35,14 @@ To change the title placeholder, use the {@link module:heading/title~TitleConfig
 ```js
 ClassicEditor
     .create( document.querySelector( '#editor' ), {
-        plugins: [ Title, ... ],
+        plugins: [ Title, /* ... */ ],
         title: {
             placeholder: 'My custom placeholder for the title'
         },
         placeholder: 'My custom placeholder for the body'
     } )
-    .then( ... )
-    .catch( ... );
+    .then( /* ... */ )
+    .catch( /* ... */ );
 ```
 
 ## Installation
@@ -60,14 +60,14 @@ import Title from '@ckeditor/ckeditor5-heading/src/title';
 
 ClassicEditor
     .create( document.querySelector( '#editor' ), {
-        plugins: [ Title, ... ]
+        plugins: [ Title, /* ... */ ]
     } )
-    .then( ... )
-    .catch( ... );
+    .then( /* ... */ )
+    .catch( /* ... */ );
 ```
 
 <info-box info>
-	Read more about {@link builds/guides/integration/installing-plugins installing plugins}.
+	Read more about {@link installation/getting-started/installing-plugins installing plugins}.
 </info-box>
 
 ## HTML structure
@@ -96,4 +96,4 @@ In the CKEditor 5 data model the document title is represented as follows:
 
 ## Contribute
 
-The source code of the feature is available on GitHub in https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-heading.
+The source code of the feature is available on GitHub in [https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-heading](https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-heading).

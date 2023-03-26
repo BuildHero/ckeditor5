@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -18,6 +18,7 @@ import ContextualBalloon from '@ckeditor/ckeditor5-ui/src/panel/balloon/contextu
 
 import Table from '../../src/table';
 import TableCellPropertiesEditing from '../../src/tablecellproperties/tablecellpropertiesediting';
+import TableCellWidthEditing from '../../src/tablecellwidth/tablecellwidthediting';
 import TableCellPropertiesUI from '../../src/tablecellproperties/tablecellpropertiesui';
 import TableCellPropertiesUIView from '../../src/tablecellproperties/ui/tablecellpropertiesview';
 import { defaultColors } from '../../src/utils/ui/table-properties';
@@ -38,7 +39,7 @@ describe( 'table cell properties', () => {
 
 			return ClassicTestEditor
 				.create( editorElement, {
-					plugins: [ Table, TableCellPropertiesEditing, TableCellPropertiesUI, Paragraph, Undo ],
+					plugins: [ Table, TableCellPropertiesEditing, TableCellPropertiesUI, TableCellWidthEditing, Paragraph, Undo ],
 					initialData: '<table><tr><td>foo</td></tr></table><p>bar</p>'
 				} )
 				.then( newEditor => {
@@ -87,19 +88,29 @@ describe( 'table cell properties', () => {
 			} );
 
 			describe( '#view', () => {
-				it( 'should be created', () => {
+				it( 'should not be created', () => {
+					expect( tableCellPropertiesUI.view ).to.be.null;
+				} );
+
+				it( 'should be created on first show', () => {
+					tableCellPropertiesUI._showView();
 					expect( tableCellPropertiesUI.view ).to.be.instanceOf( TableCellPropertiesUIView );
 				} );
 
 				it( 'should be rendered', () => {
+					tableCellPropertiesUI._showView();
 					expect( tableCellPropertiesUI.view.isRendered ).to.be.true;
 				} );
 
 				it( 'should get the border colors configurations', () => {
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 					expect( tableCellPropertiesView.options.borderColors ).to.have.length( 15 );
 				} );
 
 				it( 'should get the background colors configurations', () => {
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 					expect( tableCellPropertiesView.options.backgroundColors ).to.have.length( 15 );
 				} );
 			} );
@@ -129,7 +140,6 @@ describe( 'table cell properties', () => {
 						'tableCellBorderStyle',
 						'tableCellBorderColor',
 						'tableCellBorderWidth',
-						'tableCellWidth',
 						'tableCellHeight',
 						'tableCellPadding',
 						'tableCellBackgroundColor',
@@ -150,6 +160,9 @@ describe( 'table cell properties', () => {
 
 		describe( 'destroy()', () => {
 			it( 'should destroy the #view', () => {
+				tableCellPropertiesUI._showView();
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				const spy = sinon.spy( tableCellPropertiesView, 'destroy' );
 
 				tableCellPropertiesUI.destroy();
@@ -167,6 +180,8 @@ describe( 'table cell properties', () => {
 
 			it( 'should hide on #submit', () => {
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				tableCellPropertiesView.fire( 'submit' );
@@ -180,6 +195,7 @@ describe( 'table cell properties', () => {
 
 					// Show the view. New batch will be created.
 					tableCellPropertiesButton.fire( 'execute' );
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 
 					// Cancel the view immediately.
 					tableCellPropertiesView.fire( 'cancel' );
@@ -192,6 +208,7 @@ describe( 'table cell properties', () => {
 
 					// Show the view. New batch will be created.
 					tableCellPropertiesButton.fire( 'execute' );
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 
 					// Do the changes like a user.
 					tableCellPropertiesView.borderStyle = 'dotted';
@@ -200,7 +217,7 @@ describe( 'table cell properties', () => {
 					expect( getModelData( editor.model ) ).to.equal(
 						'<table>' +
 							'<tableRow>' +
-								'<tableCell backgroundColor="red" borderStyle="dotted">' +
+								'<tableCell tableCellBackgroundColor="red" tableCellBorderStyle="dotted">' +
 									'<paragraph>[]foo</paragraph>' +
 								'</tableCell>' +
 							'</tableRow>' +
@@ -226,6 +243,8 @@ describe( 'table cell properties', () => {
 
 				it( 'should hide the view', () => {
 					tableCellPropertiesButton.fire( 'execute' );
+					tableCellPropertiesView = tableCellPropertiesUI.view;
+
 					expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 					tableCellPropertiesView.fire( 'cancel' );
@@ -241,6 +260,8 @@ describe( 'table cell properties', () => {
 				};
 
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				tableCellPropertiesView.keystrokes.press( keyEvtData );
@@ -249,6 +270,8 @@ describe( 'table cell properties', () => {
 
 			it( 'should hide if the table cell is no longer selected on EditorUI#update', () => {
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				editor.model.change( writer => {
@@ -261,6 +284,8 @@ describe( 'table cell properties', () => {
 
 			it( 'should reposition if table cell is still selected on on EditorUI#update', () => {
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				editor.model.change( writer => {
@@ -270,8 +295,20 @@ describe( 'table cell properties', () => {
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 			} );
 
+			it( 'should not reposition if view is not visible', () => {
+				const spy = sinon.spy( contextualBalloon, 'updatePosition' );
+
+				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesUI.view = false;
+				editor.ui.fire( 'update' );
+
+				expect( spy.called ).to.be.false;
+			} );
+
 			it( 'should hide if clicked outside the balloon', () => {
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				document.body.dispatchEvent( new Event( 'mousedown', { bubbles: true } ) );
@@ -280,8 +317,14 @@ describe( 'table cell properties', () => {
 			} );
 
 			describe( 'property changes', () => {
+				let batch;
+
 				beforeEach( () => {
-					tableCellPropertiesUI._undoStepBatch = 'foo';
+					batch = editor.model.createBatch();
+
+					tableCellPropertiesUI._undoStepBatch = batch;
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 				} );
 
 				describe( '#borderStyle', () => {
@@ -291,7 +334,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.borderStyle = 'dotted';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellBorderStyle', { value: 'dotted', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBorderStyle', { value: 'dotted', batch } );
 					} );
 				} );
 
@@ -302,7 +345,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.borderColor = '#FFAAFF';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellBorderColor', { value: '#FFAAFF', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBorderColor', { value: '#FFAAFF', batch } );
 					} );
 
 					it( 'should display an error message if value is invalid', () => {
@@ -322,7 +365,7 @@ describe( 'table cell properties', () => {
 						clock.tick( 500 );
 
 						expect( tableCellPropertiesView.borderColorInput.errorText ).to.be.null;
-						sinon.assert.calledWithExactly( spy, 'tableCellBorderColor', { value: '#AAA', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBorderColor', { value: '#AAA', batch } );
 					} );
 				} );
 
@@ -333,7 +376,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.borderWidth = '12px';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellBorderWidth', { value: '12px', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBorderWidth', { value: '12px', batch } );
 					} );
 
 					it( 'should display an error message if value is invalid', () => {
@@ -353,7 +396,7 @@ describe( 'table cell properties', () => {
 						clock.tick( 500 );
 
 						expect( tableCellPropertiesView.backgroundInput.errorText ).to.be.null;
-						sinon.assert.calledWithExactly( spy, 'tableCellBorderWidth', { value: '3em', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBorderWidth', { value: '3em', batch } );
 					} );
 				} );
 
@@ -364,7 +407,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.width = '12px';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellWidth', { value: '12px', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellWidth', { value: '12px', batch } );
 					} );
 
 					it( 'should display an error message if value is invalid', () => {
@@ -384,7 +427,7 @@ describe( 'table cell properties', () => {
 						clock.tick( 500 );
 
 						expect( tableCellPropertiesView.backgroundInput.errorText ).to.be.null;
-						sinon.assert.calledWithExactly( spy, 'tableCellWidth', { value: '3em', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellWidth', { value: '3em', batch } );
 					} );
 				} );
 
@@ -395,7 +438,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.height = '12px';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellHeight', { value: '12px', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellHeight', { value: '12px', batch } );
 					} );
 
 					it( 'should display an error message if value is invalid', () => {
@@ -415,7 +458,7 @@ describe( 'table cell properties', () => {
 						clock.tick( 500 );
 
 						expect( tableCellPropertiesView.backgroundInput.errorText ).to.be.null;
-						sinon.assert.calledWithExactly( spy, 'tableCellHeight', { value: '3em', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellHeight', { value: '3em', batch } );
 					} );
 				} );
 
@@ -426,7 +469,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.padding = '12px';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellPadding', { value: '12px', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellPadding', { value: '12px', batch } );
 					} );
 
 					it( 'should display an error message if value is invalid', () => {
@@ -446,7 +489,7 @@ describe( 'table cell properties', () => {
 						clock.tick( 500 );
 
 						expect( tableCellPropertiesView.backgroundInput.errorText ).to.be.null;
-						sinon.assert.calledWithExactly( spy, 'tableCellPadding', { value: '3em', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellPadding', { value: '3em', batch } );
 					} );
 				} );
 
@@ -457,7 +500,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.backgroundColor = '#FFAAFF';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellBackgroundColor', { value: '#FFAAFF', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBackgroundColor', { value: '#FFAAFF', batch } );
 					} );
 
 					it( 'should display an error message if value is invalid', () => {
@@ -477,7 +520,7 @@ describe( 'table cell properties', () => {
 						clock.tick( 500 );
 
 						expect( tableCellPropertiesView.backgroundInput.errorText ).to.be.null;
-						sinon.assert.calledWithExactly( spy, 'tableCellBackgroundColor', { value: '#AAA', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellBackgroundColor', { value: '#AAA', batch } );
 					} );
 				} );
 
@@ -488,7 +531,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.horizontalAlignment = 'right';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellHorizontalAlignment', { value: 'right', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellHorizontalAlignment', { value: 'right', batch } );
 					} );
 				} );
 
@@ -499,7 +542,7 @@ describe( 'table cell properties', () => {
 						tableCellPropertiesView.verticalAlignment = 'right';
 
 						sinon.assert.calledOnce( spy );
-						sinon.assert.calledWithExactly( spy, 'tableCellVerticalAlignment', { value: 'right', batch: 'foo' } );
+						sinon.assert.calledWithExactly( spy, 'tableCellVerticalAlignment', { value: 'right', batch } );
 					} );
 				} );
 
@@ -539,6 +582,8 @@ describe( 'table cell properties', () => {
 
 			it( 'should create a new undoable batch for further #view cancel', () => {
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				const firstBatch = tableCellPropertiesUI._undoStepBatch;
@@ -564,11 +609,32 @@ describe( 'table cell properties', () => {
 				} );
 
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 			} );
 
 			describe( 'initial data', () => {
+				it( 'should not execute commands before changing the data', () => {
+					const tableCellBackgroundCommand = editor.commands.get( 'tableCellBackgroundColor' );
+					const spy = sinon.spy( tableCellBackgroundCommand, 'execute' );
+
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesView = tableCellPropertiesUI.view;
+
+					expect( spy.called ).to.be.false;
+
+					tableCellPropertiesView.backgroundColor = 'red';
+
+					expect( spy.called ).to.be.true;
+				} );
+
 				it( 'should be set before adding the form to the the balloon to avoid unnecessary input animations', () => {
+					// Trigger lazy init.
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesUI._hideView();
+					tableCellPropertiesView = tableCellPropertiesUI.view;
+
 					const balloonAddSpy = testUtils.sinon.spy( editor.plugins.get( ContextualBalloon ), 'add' );
 					const borderStyleChangeSpy = testUtils.sinon.spy();
 
@@ -586,26 +652,25 @@ describe( 'table cell properties', () => {
 					editor.commands.get( 'tableCellBorderStyle' ).value = 'a';
 					editor.commands.get( 'tableCellBorderColor' ).value = 'b';
 					editor.commands.get( 'tableCellBorderWidth' ).value = 'c';
-					editor.commands.get( 'tableCellWidth' ).value = 'd';
-					editor.commands.get( 'tableCellHeight' ).value = 'e';
-					editor.commands.get( 'tableCellPadding' ).value = 'f';
-					editor.commands.get( 'tableCellBackgroundColor' ).value = 'g';
-					editor.commands.get( 'tableCellHorizontalAlignment' ).value = 'h';
-					editor.commands.get( 'tableCellVerticalAlignment' ).value = 'i';
+					editor.commands.get( 'tableCellHeight' ).value = 'd';
+					editor.commands.get( 'tableCellPadding' ).value = 'e';
+					editor.commands.get( 'tableCellBackgroundColor' ).value = 'f';
+					editor.commands.get( 'tableCellHorizontalAlignment' ).value = 'g';
+					editor.commands.get( 'tableCellVerticalAlignment' ).value = 'h';
 
 					tableCellPropertiesButton.fire( 'execute' );
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 
 					expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 					expect( tableCellPropertiesView ).to.include( {
 						borderStyle: 'a',
 						borderColor: 'b',
 						borderWidth: 'c',
-						width: 'd',
-						height: 'e',
-						padding: 'f',
-						backgroundColor: 'g',
-						horizontalAlignment: 'h',
-						verticalAlignment: 'i'
+						height: 'd',
+						padding: 'e',
+						backgroundColor: 'f',
+						horizontalAlignment: 'g',
+						verticalAlignment: 'h'
 					} );
 				} );
 
@@ -613,7 +678,6 @@ describe( 'table cell properties', () => {
 					editor.commands.get( 'tableCellBorderStyle' ).value = null;
 					editor.commands.get( 'tableCellBorderColor' ).value = null;
 					editor.commands.get( 'tableCellBorderWidth' ).value = null;
-					editor.commands.get( 'tableCellWidth' ).value = null;
 					editor.commands.get( 'tableCellHeight' ).value = null;
 					editor.commands.get( 'tableCellPadding' ).value = null;
 					editor.commands.get( 'tableCellBackgroundColor' ).value = null;
@@ -621,13 +685,13 @@ describe( 'table cell properties', () => {
 					editor.commands.get( 'tableCellVerticalAlignment' ).value = null;
 
 					tableCellPropertiesButton.fire( 'execute' );
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 
 					expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 					expect( tableCellPropertiesView ).to.include( {
 						borderStyle: 'none',
 						borderColor: '',
 						borderWidth: '',
-						width: '',
 						height: '',
 						padding: '',
 						backgroundColor: '',
@@ -638,6 +702,11 @@ describe( 'table cell properties', () => {
 			} );
 
 			it( 'should focus the form view', () => {
+				// Trigger lazy init.
+				tableCellPropertiesUI._showView();
+				tableCellPropertiesUI._hideView();
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				const spy = testUtils.sinon.spy( tableCellPropertiesView, 'focus' );
 
 				tableCellPropertiesButton.fire( 'execute' );
@@ -657,6 +726,8 @@ describe( 'table cell properties', () => {
 				const spy = testUtils.sinon.spy( tableCellPropertiesUI, 'stopListening' );
 
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				tableCellPropertiesView.fire( 'submit' );
@@ -670,6 +741,8 @@ describe( 'table cell properties', () => {
 				const spy = testUtils.sinon.spy( editor.editing.view, 'focus' );
 
 				tableCellPropertiesButton.fire( 'execute' );
+				tableCellPropertiesView = tableCellPropertiesUI.view;
+
 				expect( contextualBalloon.visibleView ).to.equal( tableCellPropertiesView );
 
 				tableCellPropertiesView.fire( 'submit' );
@@ -690,7 +763,7 @@ describe( 'table cell properties', () => {
 
 				return ClassicTestEditor
 					.create( editorElement, {
-						plugins: [ Table, TableCellPropertiesEditing, TableCellPropertiesUI, Paragraph, Undo ],
+						plugins: [ Table, TableCellPropertiesEditing, TableCellPropertiesUI, TableCellWidthEditing, Paragraph, Undo ],
 						initialData: '<table><tr><td>foo</td></tr></table><p>bar</p>',
 						table: {
 							tableCellProperties: {
@@ -729,6 +802,18 @@ describe( 'table cell properties', () => {
 			} );
 
 			describe( 'init()', () => {
+				beforeEach( () => {
+					editor.model.change( writer => {
+						writer.setSelection( editor.model.document.getRoot().getChild( 0 ).getChild( 0 ).getChild( 0 ), 0 );
+					} );
+
+					// Trigger lazy init.
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesUI._hideView();
+
+					tableCellPropertiesView = tableCellPropertiesUI.view;
+				} );
+
 				describe( '#view', () => {
 					it( 'should get the default table cell properties configurations', () => {
 						expect( tableCellPropertiesView.options.defaultTableCellProperties ).to.deep.equal( {
@@ -751,6 +836,12 @@ describe( 'table cell properties', () => {
 					editor.model.change( writer => {
 						writer.setSelection( editor.model.document.getRoot().getChild( 0 ).getChild( 0 ).getChild( 0 ), 0 );
 					} );
+
+					// Trigger lazy init.
+					tableCellPropertiesUI._showView();
+					tableCellPropertiesUI._hideView();
+
+					tableCellPropertiesView = tableCellPropertiesUI.view;
 				} );
 
 				describe( 'initial data', () => {
@@ -792,7 +883,6 @@ describe( 'table cell properties', () => {
 							borderColor: '',
 							borderWidth: '',
 							backgroundColor: '#00f',
-							width: '250px',
 							height: '150px',
 							padding: '10px',
 							horizontalAlignment: 'center',

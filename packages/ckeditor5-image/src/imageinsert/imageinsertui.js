@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -7,8 +7,9 @@
  * @module image/imageinsert/imageinsertui
  */
 
-import { Plugin } from 'ckeditor5/src/core';
+import { Plugin, icons } from 'ckeditor5/src/core';
 import ImageInsertPanelView from './ui/imageinsertpanelview';
+import { SplitButtonView, createDropdown } from 'ckeditor5/src/ui';
 import { prepareIntegrations } from './utils';
 
 /**
@@ -54,60 +55,86 @@ export default class ImageInsertUI extends Plugin {
 	 */
 	_createDropdownView( locale ) {
 		const editor = this.editor;
-		const imageInsertView = new ImageInsertPanelView( locale, prepareIntegrations( editor ) );
-		const command = editor.commands.get( 'uploadImage' );
+		const t = locale.t;
 
-		const dropdownView = imageInsertView.dropdownView;
-		const splitButtonView = dropdownView.buttonView;
+		const uploadImageCommand = editor.commands.get( 'uploadImage' );
+		const insertImageCommand = editor.commands.get( 'insertImage' );
 
-		splitButtonView.actionView = editor.ui.componentFactory.create( 'uploadImage' );
-		// After we replaced action button with `uploadImage` component,
-		// we have lost a proper styling and some minor visual quirks have appeared.
-		// Brining back original split button classes helps fix the button styling
-		// See https://github.com/ckeditor/ckeditor5/issues/7986.
-		splitButtonView.actionView.extendTemplate( {
+		/**
+		 * The dropdown view responsible for displaying the image insert UI.
+		 *
+		 * @member {module:ui/dropdown/dropdownview~DropdownView}
+		 */
+		this.dropdownView = createDropdown( locale, uploadImageCommand ? SplitButtonView : undefined );
+
+		const buttonView = this.dropdownView.buttonView;
+		const panelView = this.dropdownView.panelView;
+
+		buttonView.set( {
+			label: t( 'Insert image' ),
+			icon: icons.image,
+			tooltip: true
+		} );
+
+		panelView.extendTemplate( {
 			attributes: {
-				class: 'ck ck-button ck-splitbutton__action'
+				class: 'ck-image-insert__panel'
 			}
 		} );
 
-		return this._setUpDropdown( dropdownView, imageInsertView, command );
+		if ( uploadImageCommand ) {
+			const splitButtonView = this.dropdownView.buttonView;
+
+			splitButtonView.actionView = editor.ui.componentFactory.create( 'uploadImage' );
+			// After we replaced action button with `uploadImage` component,
+			// we have lost a proper styling and some minor visual quirks have appeared.
+			// Brining back original split button classes helps fix the button styling
+			// See https://github.com/ckeditor/ckeditor5/issues/7986.
+			splitButtonView.actionView.extendTemplate( {
+				attributes: {
+					class: 'ck ck-button ck-splitbutton__action'
+				}
+			} );
+		}
+
+		return this._setUpDropdown( uploadImageCommand || insertImageCommand );
 	}
 
 	/**
 	 * Sets up the dropdown view.
 	 *
-	 * @param {module:ui/dropdown/dropdownview~DropdownView} dropdownView A dropdownView.
-	 * @param {module:image/imageinsert/ui/imageinsertpanelview~ImageInsertPanelView} imageInsertView An imageInsertView.
-	 * @param {module:core/command~Command} command An insertImage command
+	 * @param {module:core/command~Command} command An uploadImage or insertImage command.
 	 *
 	 * @private
 	 * @returns {module:ui/dropdown/dropdownview~DropdownView}
 	 */
-	_setUpDropdown( dropdownView, imageInsertView, command ) {
+	_setUpDropdown( command ) {
 		const editor = this.editor;
 		const t = editor.t;
-		const insertButtonView = imageInsertView.insertButtonView;
-		const insertImageViaUrlForm = imageInsertView.getIntegration( 'insertImageViaUrl' );
+		const dropdownView = this.dropdownView;
 		const panelView = dropdownView.panelView;
 		const imageUtils = this.editor.plugins.get( 'ImageUtils' );
+		const replaceImageSourceCommand = editor.commands.get( 'replaceImageSource' );
+
+		let imageInsertView;
 
 		dropdownView.bind( 'isEnabled' ).to( command );
 
-		// Defer the children injection to improve initial performance.
-		// See https://github.com/ckeditor/ckeditor5/pull/8019#discussion_r484069652.
-		dropdownView.buttonView.once( 'open', () => {
+		dropdownView.once( 'change:isOpen', () => {
+			imageInsertView = new ImageInsertPanelView( editor.locale, prepareIntegrations( editor ) );
+
+			imageInsertView.delegate( 'submit', 'cancel' ).to( dropdownView );
 			panelView.children.add( imageInsertView );
 		} );
 
 		dropdownView.on( 'change:isOpen', () => {
 			const selectedElement = editor.model.document.selection.getSelectedElement();
+			const insertButtonView = imageInsertView.insertButtonView;
+			const insertImageViaUrlForm = imageInsertView.getIntegration( 'insertImageViaUrl' );
 
 			if ( dropdownView.isOpen ) {
-				imageInsertView.focus();
-
 				if ( imageUtils.isImage( selectedElement ) ) {
-					imageInsertView.imageURLInputValue = selectedElement.getAttribute( 'src' );
+					imageInsertView.imageURLInputValue = replaceImageSourceCommand.value;
 					insertButtonView.label = t( 'Update' );
 					insertImageViaUrlForm.label = t( 'Update image URL' );
 				} else {
@@ -121,7 +148,6 @@ export default class ImageInsertUI extends Plugin {
 		// invisible form/input cannot be focused/selected.
 		}, { priority: 'low' } );
 
-		imageInsertView.delegate( 'submit', 'cancel' ).to( dropdownView );
 		this.delegate( 'cancel' ).to( dropdownView );
 
 		dropdownView.on( 'submit', () => {
@@ -137,11 +163,7 @@ export default class ImageInsertUI extends Plugin {
 			const selectedElement = editor.model.document.selection.getSelectedElement();
 
 			if ( imageUtils.isImage( selectedElement ) ) {
-				editor.model.change( writer => {
-					writer.setAttribute( 'src', imageInsertView.imageURLInputValue, selectedElement );
-					writer.removeAttribute( 'srcset', selectedElement );
-					writer.removeAttribute( 'sizes', selectedElement );
-				} );
+				editor.execute( 'replaceImageSource', { source: imageInsertView.imageURLInputValue } );
 			} else {
 				editor.execute( 'insertImage', { source: imageInsertView.imageURLInputValue } );
 			}

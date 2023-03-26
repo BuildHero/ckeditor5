@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -216,7 +216,7 @@ export default class TablePropertiesView extends View {
 		/**
 		 * A toolbar with buttons that allow changing the alignment of an entire table.
 		 * @readonly
-		 * @member {module:ui/toolbar/toolbar~ToolbarView}
+		 * @member {module:ui/toolbar/toolbarview~ToolbarView}
 		 */
 		this.alignmentToolbar = alignmentToolbar;
 
@@ -360,8 +360,10 @@ export default class TablePropertiesView extends View {
 		[
 			this.borderStyleDropdown,
 			this.borderColorInput,
+			this.borderColorInput.fieldView.dropdownView.buttonView,
 			this.borderWidthInput,
 			this.backgroundInput,
+			this.backgroundInput.fieldView.dropdownView.buttonView,
 			this.widthInput,
 			this.heightInput,
 			this.alignmentToolbar,
@@ -377,6 +379,16 @@ export default class TablePropertiesView extends View {
 
 		// Mainly for closing using "Esc" and navigation using "Tab".
 		this.keystrokes.listenTo( this.element );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	destroy() {
+		super.destroy();
+
+		this.focusTracker.destroy();
+		this.keystrokes.destroy();
 	}
 
 	/**
@@ -690,7 +702,6 @@ export default class TablePropertiesView extends View {
 			label: t( 'Cancel' ),
 			icon: icons.cancel,
 			class: 'ck-button-cancel',
-			type: 'cancel',
 			withText: true
 		} );
 

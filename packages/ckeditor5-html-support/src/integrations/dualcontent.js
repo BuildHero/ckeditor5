@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -10,7 +10,6 @@
 import { Plugin } from 'ckeditor5/src/core';
 import { priorities } from 'ckeditor5/src/utils';
 import {
-	disallowedAttributesConverter,
 	modelToViewBlockAttributeConverter,
 	viewToModelBlockAttributeConverter
 } from '../converters';
@@ -42,6 +41,13 @@ export default class DualContentModelElementSupport extends Plugin {
 	 */
 	static get requires() {
 		return [ DataFilter ];
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	static get pluginName() {
+		return 'DualContentModelElementSupport';
 	}
 
 	/**
@@ -112,10 +118,19 @@ export default class DualContentModelElementSupport extends Plugin {
 	 * @returns {Boolean}
 	 */
 	_hasBlockContent( viewElement ) {
-		const blockElements = this.editor.editing.view.domConverter.blockElements;
+		const view = this.editor.editing.view;
+		const blockElements = view.domConverter.blockElements;
 
-		return Array.from( viewElement.getChildren() )
-			.some( node => blockElements.includes( node.name ) );
+		// Traversing the viewElement subtree looking for block elements.
+		// Especially for the cases like <div><a href="#"><p>foo</p></a></div>.
+		// https://github.com/ckeditor/ckeditor5/issues/11513
+		for ( const viewItem of view.createRangeIn( viewElement ).getItems() ) {
+			if ( viewItem.is( 'element' ) && blockElements.includes( viewItem.name ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -133,7 +148,6 @@ export default class DualContentModelElementSupport extends Plugin {
 			allowAttributes: 'htmlAttributes'
 		} );
 
-		conversion.for( 'upcast' ).add( disallowedAttributesConverter( definition, dataFilter ) );
 		conversion.for( 'upcast' ).add( viewToModelBlockAttributeConverter( definition, dataFilter ) );
 		conversion.for( 'downcast' ).add( modelToViewBlockAttributeConverter( definition ) );
 	}

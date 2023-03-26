@@ -7,15 +7,23 @@ menu-title: Word and character count
 
 # Word count and character count
 
-The {@link module:word-count/wordcount~WordCount} feature provides a possibility to track the number of words and characters written in the rich-text editor.
+The word count feature provides a possibility to track the number of words and characters written in the rich-text editor.
 
 It is a feature crucial for writing professionals but also for students and marketers. Keeping track of the document's word or character count helps planning the overall content volume, meeting assignment requirements or keeping within the preset text length goal. The word or character count aids quick assessment of work that was done and needs yet to be done as well as supports the writing process planning and management.
+
+<info-box info>
+	The Word count feature is enabled by default in the {@link installation/getting-started/predefined-builds#superbuild superbuild} only. See the [installation](#installation) section to learn how to enable it in your editor.
+</info-box>
 
 ## Demo
 
 Type some more or edit the content and observe the counter below the main editor window react in real-time.
 
 {@snippet features/word-count}
+
+<info-box info>
+	This demo only presents a limited set of features. Visit the {@link examples/builds/full-featured-editor full-featured editor example} to see more in action.
+</info-box>
 
 The example above was created by using the following HTML page structure:
 
@@ -39,7 +47,7 @@ ClassicEditor
 
 		wordCountWrapper.appendChild( wordCountPlugin.wordCountContainer );
 	} )
-	.catch( ... );
+	.catch( /* ... */ );
 ```
 
 ## Related features
@@ -47,7 +55,7 @@ ClassicEditor
 CKEditor 5 provides other productivity-boosting features that you may find helpful:
 
 * {@link features/spelling-and-grammar-checking Proofreading, spelling and grammar checking} &ndash; Track and correct any possible errors as you type.
-* {@link builds/guides/integration/saving-data#autosave-feature Autosave} &ndash; Never lose you content by accident, stay safe and automatically save.
+* {@link installation/getting-started/getting-and-setting-data#autosave-feature Autosave} &ndash; Never lose you content by accident, stay safe and automatically save.
 * {@link features/autoformat Autoformatting} &ndash; Employ Markdown syntax for a faster and more efficient editing process.
 * {@link features/text-transformation Automatic text transformation} &ndash; Automatically turn predefined snippets into their improved forms using the autocorrect feature.
 
@@ -87,7 +95,7 @@ You can execute your custom callback every time content statistics change by def
 ```js
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ WordCount, ... ],
+		plugins: [ WordCount, /* ... */ ],
 		wordCount: {
 			onUpdate: stats => {
 				// Prints the current content statistics.
@@ -95,8 +103,8 @@ ClassicEditor
 			}
 		}
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 **Note**: For performance reasons, your callback will be throttled and may not be up–to–date. Use the {@link module:word-count/wordcount~WordCount#characters} and {@link module:word-count/wordcount~WordCount#words} plugin properties to retrieve the precise numbers on demand.
@@ -148,7 +156,7 @@ BalloonEditor
 			}
 		}
 	} )
-	.catch( ... );
+	.catch( /* ... */ );
 ```
 
 Here is the HTML structure used to create the customized word and character count implementation above:
@@ -251,14 +259,14 @@ import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ WordCount, ... ],
+		plugins: [ WordCount, /* ... */ ],
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 <info-box info>
-	Read more about {@link builds/guides/integration/installing-plugins installing plugins}.
+	Read more about {@link installation/getting-started/installing-plugins installing plugins}.
 </info-box>
 
 ## Common API
@@ -286,4 +294,4 @@ The {@link module:word-count/wordcount~WordCount} plugin provides:
 
 ## Contribute
 
-The source code of the feature is available on GitHub in https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-word-count.
+The source code of the feature is available on GitHub in [https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-word-count](https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-word-count).

@@ -1,9 +1,9 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-/* globals Event */
+/* globals document, Event */
 
 import TablePropertiesView from '../../../src/tableproperties/ui/tablepropertiesview';
 import LabeledFieldView from '@ckeditor/ckeditor5-ui/src/labeledfield/labeledfieldview';
@@ -59,9 +59,11 @@ describe( 'table properties', () => {
 			locale = { t: val => val };
 			view = new TablePropertiesView( locale, VIEW_OPTIONS );
 			view.render();
+			document.body.appendChild( view.element );
 		} );
 
 		afterEach( () => {
+			view.element.remove();
 			view.destroy();
 		} );
 
@@ -167,6 +169,7 @@ describe( 'table properties', () => {
 						} );
 
 						it( 'should change #borderStyle when executed', () => {
+							labeledDropdown.fieldView.isOpen = true;
 							labeledDropdown.fieldView.listView.items.first.children.first.fire( 'execute' );
 							expect( view.borderStyle ).to.equal( 'none' );
 
@@ -175,6 +178,8 @@ describe( 'table properties', () => {
 						} );
 
 						it( 'should come with a set of pre–defined border styles', () => {
+							labeledDropdown.fieldView.isOpen = true;
+
 							expect( labeledDropdown.fieldView.listView.items.map( item => {
 								return item.children.first.label;
 							} ) ).to.have.ordered.members( [
@@ -527,6 +532,7 @@ describe( 'table properties', () => {
 						expect( view.cancelButtonView.label ).to.equal( 'Cancel' );
 						expect( view.cancelButtonView.withText ).to.be.true;
 						expect( view.cancelButtonView.class ).to.equal( 'ck-button-cancel' );
+						expect( view.cancelButtonView.type ).to.equal( 'button' );
 					} );
 
 					it( 'should make the cancel button fire the #cancel event when executed', () => {
@@ -613,8 +619,10 @@ describe( 'table properties', () => {
 				expect( view._focusables.map( f => f ) ).to.have.members( [
 					view.borderStyleDropdown,
 					view.borderColorInput,
+					view.borderColorInput.fieldView.dropdownView.buttonView,
 					view.borderWidthInput,
 					view.backgroundInput,
+					view.backgroundInput.fieldView.dropdownView.buttonView,
 					view.widthInput,
 					view.heightInput,
 					view.alignmentToolbar,
@@ -689,6 +697,24 @@ describe( 'table properties', () => {
 					sinon.assert.calledOnce( keyEvtData.stopPropagation );
 					sinon.assert.calledOnce( spy );
 				} );
+			} );
+		} );
+
+		describe( 'destroy()', () => {
+			it( 'should destroy the FocusTracker instance', () => {
+				const destroySpy = sinon.spy( view.focusTracker, 'destroy' );
+
+				view.destroy();
+
+				sinon.assert.calledOnce( destroySpy );
+			} );
+
+			it( 'should destroy the KeystrokeHandler instance', () => {
+				const destroySpy = sinon.spy( view.keystrokes, 'destroy' );
+
+				view.destroy();
+
+				sinon.assert.calledOnce( destroySpy );
 			} );
 		} );
 
@@ -789,7 +815,7 @@ describe( 'table properties', () => {
 
 						it( 'should replace "Remove color" with the "Restore default" label', () => {
 							const { borderColorInput } = view;
-							const { panelView } = borderColorInput.fieldView._dropdownView;
+							const { panelView } = borderColorInput.fieldView.dropdownView;
 
 							expect( panelView.children.first.label ).to.equal( 'Restore default' );
 						} );
@@ -799,7 +825,7 @@ describe( 'table properties', () => {
 				describe( 'background row', () => {
 					it( 'should replace "Remove color" with the "Restore default" label', () => {
 						const { backgroundInput } = view;
-						const { panelView } = backgroundInput.fieldView._dropdownView;
+						const { panelView } = backgroundInput.fieldView.dropdownView;
 
 						expect( panelView.children.first.label ).to.equal( 'Restore default' );
 					} );

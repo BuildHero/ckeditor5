@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -197,7 +197,7 @@ describe( 'FindAndReplace', () => {
 				// (#10014).
 				editor.setData( LONG_TEXT );
 
-				toolbarDropdownView.buttonView.arrowView.fire( 'execute' );
+				toolbarDropdownView.buttonView.fire( 'execute' );
 				findAndReplaceUI.formView._findInputView.fieldView.value = 'nothingtobefound';
 				findAndReplaceUI.formView._findButtonView.fire( 'execute' );
 
@@ -243,6 +243,29 @@ describe( 'FindAndReplace', () => {
 				toolbarDropdownView.buttonView.fire( 'execute' );
 
 				expect( toolbarDropdownView.panelView.isVisible ).to.be.true;
+			} );
+		} );
+
+		describe( 'subsequent findNext events', () => {
+			it( 'causes just a findNext command call', () => {
+				editor.setData( LONG_TEXT );
+
+				// The first call, it will call different logic.
+				findAndReplaceUI.fire( 'findNext', { searchText: 'cake' } );
+
+				const findSpy = getCommandExecutionSpy( 'find' );
+				const findNextSpy = getCommandExecutionSpy( 'findNext' );
+
+				// Second call (only if the search text remains the same) should just move the highlight.
+				findAndReplaceUI.fire( 'findNext', { searchText: 'cake' } );
+
+				sinon.assert.callCount( findSpy, 1 );
+				sinon.assert.callCount( findNextSpy, 0 );
+
+				// Third call without passing any searchText should just move the highlight.
+				findAndReplaceUI.fire( 'findNext' );
+
+				sinon.assert.callCount( findNextSpy, 1 );
 			} );
 		} );
 

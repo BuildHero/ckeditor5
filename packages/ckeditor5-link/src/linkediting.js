@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -11,12 +11,19 @@ import { Plugin } from 'ckeditor5/src/core';
 import { MouseObserver } from 'ckeditor5/src/engine';
 import { Input, TwoStepCaretMovement, inlineHighlight, findAttributeRange } from 'ckeditor5/src/typing';
 import { ClipboardPipeline } from 'ckeditor5/src/clipboard';
-import { keyCodes } from 'ckeditor5/src/utils';
+import { keyCodes, env } from 'ckeditor5/src/utils';
 
 import LinkCommand from './linkcommand';
 import UnlinkCommand from './unlinkcommand';
 import ManualDecorator from './utils/manualdecorator';
-import { createLinkElement, ensureSafeUrl, getLocalizedDecorators, normalizeDecorators } from './utils';
+import {
+	createLinkElement,
+	ensureSafeUrl,
+	getLocalizedDecorators,
+	normalizeDecorators,
+	openLink,
+	addLinkProtocolIfApplicable
+} from './utils';
 
 import '../theme/link.css';
 
@@ -107,6 +114,9 @@ export default class LinkEditing extends Plugin {
 		// Setup highlight over selected link.
 		inlineHighlight( editor, 'linkHref', 'a', HIGHLIGHT_CLASS );
 
+		// Handle link following by CTRL+click or ALT+ENTER
+		this._enableLinkOpen();
+
 		// Change the attributes of the selection in certain situations after the link was inserted into the document.
 		this._enableInsertContentSelectionAttributesFixer();
 
@@ -118,6 +128,9 @@ export default class LinkEditing extends Plugin {
 
 		// Handle removing the content after the link element.
 		this._handleDeleteContentAfterLink();
+
+		// Handle adding default protocol to pasted links.
+		this._enableClipboardIntegration();
 	}
 
 	/**
@@ -190,8 +203,13 @@ export default class LinkEditing extends Plugin {
 
 			editor.conversion.for( 'downcast' ).attributeToElement( {
 				model: decorator.id,
-				view: ( manualDecoratorName, { writer } ) => {
-					if ( manualDecoratorName ) {
+				view: ( manualDecoratorValue, { writer, schema }, { item } ) => {
+					// Manual decorators for block links are handled e.g. in LinkImageEditing.
+					if ( !( item.is( 'selection' ) || schema.isInline( item ) ) ) {
+						return;
+					}
+
+					if ( manualDecoratorValue ) {
 						const element = writer.createAttributeElement( 'a', decorator.attributes, { priority: 5 } );
 
 						if ( decorator.classes ) {
@@ -206,7 +224,8 @@ export default class LinkEditing extends Plugin {
 
 						return element;
 					}
-				} } );
+				}
+			} );
 
 			editor.conversion.for( 'upcast' ).elementToAttribute( {
 				view: {
@@ -217,6 +236,61 @@ export default class LinkEditing extends Plugin {
 					key: decorator.id
 				}
 			} );
+		} );
+	}
+
+	/**
+	 * Attaches handlers for {@link module:engine/view/document~Document#event:enter} and
+	 * {@link module:engine/view/document~Document#event:click} to enable link following.
+	 *
+	 * @private
+	 */
+	_enableLinkOpen() {
+		const editor = this.editor;
+		const view = editor.editing.view;
+		const viewDocument = view.document;
+
+		this.listenTo( viewDocument, 'click', ( evt, data ) => {
+			const shouldOpen = env.isMac ? data.domEvent.metaKey : data.domEvent.ctrlKey;
+
+			if ( !shouldOpen ) {
+				return;
+			}
+
+			let clickedElement = data.domTarget;
+
+			if ( clickedElement.tagName.toLowerCase() != 'a' ) {
+				clickedElement = clickedElement.closest( 'a' );
+			}
+
+			if ( !clickedElement ) {
+				return;
+			}
+
+			const url = clickedElement.getAttribute( 'href' );
+
+			if ( !url ) {
+				return;
+			}
+
+			evt.stop();
+			data.preventDefault();
+
+			openLink( url );
+		}, { context: '$capture' } );
+
+		// Open link on Alt+Enter.
+		this.listenTo( viewDocument, 'keydown', ( evt, data ) => {
+			const url = editor.commands.get( 'link' ).value;
+			const shouldOpen = url && data.keyCode === keyCodes.enter && data.altKey;
+
+			if ( !shouldOpen ) {
+				return;
+			}
+
+			evt.stop();
+
+			openLink( url );
 		} );
 	}
 
@@ -471,7 +545,7 @@ export default class LinkEditing extends Plugin {
 
 		// Detect pressing `Backspace`.
 		this.listenTo( view.document, 'delete', ( evt, data ) => {
-			hasBackspacePressed = data.domEvent.keyCode === keyCodes.backspace;
+			hasBackspacePressed = data.direction === 'backward';
 		}, { priority: 'high' } );
 
 		// Before removing the content, check whether the selection is inside a link or at the end of link but with 2-SCM enabled.
@@ -513,6 +587,35 @@ export default class LinkEditing extends Plugin {
 				removeLinkAttributesFromSelection( writer, getLinkAttributesAllowedOnText( model.schema ) );
 			} );
 		}, { priority: 'low' } );
+	}
+
+	/**
+	 * Enables URL fixing on pasting.
+	 *
+	 * @private
+	 */
+	_enableClipboardIntegration() {
+		const editor = this.editor;
+		const model = editor.model;
+		const defaultProtocol = this.editor.config.get( 'link.defaultProtocol' );
+
+		if ( !defaultProtocol ) {
+			return;
+		}
+
+		this.listenTo( editor.plugins.get( 'ClipboardPipeline' ), 'contentInsertion', ( evt, data ) => {
+			model.change( writer => {
+				const range = writer.createRangeIn( data.content );
+
+				for ( const item of range.getItems() ) {
+					if ( item.hasAttribute( 'linkHref' ) ) {
+						const newLink = addLinkProtocolIfApplicable( item.getAttribute( 'linkHref' ), defaultProtocol );
+
+						writer.setAttribute( 'linkHref', newLink, item );
+					}
+				}
+			} );
+		} );
 	}
 }
 
@@ -577,9 +680,9 @@ function shouldCopyAttributes( model ) {
 // @params {module:core/editor/editor~Editor} editor
 // @returns {Boolean}
 function isTyping( editor ) {
-	const input = editor.plugins.get( 'Input' );
+	const currentBatch = editor.model.change( writer => writer.batch );
 
-	return input.isInput( editor.model.change( writer => writer.batch ) );
+	return currentBatch.isTyping;
 }
 
 // Returns an array containing names of the attributes allowed on `$text` that describes the link item.

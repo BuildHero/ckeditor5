@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -19,6 +19,7 @@ import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
 import Strikethrough from '@ckeditor/ckeditor5-basic-styles/src/strikethrough';
 import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline';
 import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote';
+import CKBox from '@ckeditor/ckeditor5-ckbox/src/ckbox';
 import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
 import EasyImage from '@ckeditor/ckeditor5-easy-image/src/easyimage';
 import Heading from '@ckeditor/ckeditor5-heading/src/heading';
@@ -32,12 +33,13 @@ import Indent from '@ckeditor/ckeditor5-indent/src/indent';
 import IndentBlock from '@ckeditor/ckeditor5-indent/src/indentblock';
 import Link from '@ckeditor/ckeditor5-link/src/link';
 import List from '@ckeditor/ckeditor5-list/src/list';
-import ListStyle from '@ckeditor/ckeditor5-list/src/liststyle';
+import ListProperties from '@ckeditor/ckeditor5-list/src/listproperties';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
 import Pagination from '@ckeditor/ckeditor5-pagination/src/pagination';
 import PageBreak from '@ckeditor/ckeditor5-page-break/src/pagebreak';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice';
+import PictureEditing from '@ckeditor/ckeditor5-image/src/pictureediting';
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TableProperties from '@ckeditor/ckeditor5-table/src/tableproperties';
@@ -63,47 +65,47 @@ class InsertSmartField extends Plugin {
 			smartFieldsDropdownList: smartFields = []
 		} = smartFieldsConfig;
 
-		componentFactory.add('insertSmartField', (locale) => {
-			const dropdownView = createDropdown(locale);
+		componentFactory.add( 'insertSmartField', locale => {
+			const dropdownView = createDropdown( locale );
 
-			dropdownView.buttonView.set({
+			dropdownView.buttonView.set( {
 				class: 'smartfield-icon',
 				icon: smartfieldIcon,
-				label: t('Insert smart field'),
+				label: t( 'Insert smart field' ),
 				tooltip: true
-			});
+			} );
 
 			// The collection of list items
 			const items = new Collection();
 
-			smartFields.map((option) =>
-				items.add({
+			smartFields.map( option =>
+				items.add( {
 					type: 'button',
-					model: new Model({
+					model: new Model( {
 						label: option,
 						withText: true,
 						tooltip: true
-					}),
-				})
+					} )
+				} )
 			);
 			// Create a dropdown with list of smartfields inside the panel.
-			addListToDropdown(dropdownView, items);
-			dropdownView.on('execute', (evt) => {
-				const formattedText = `[[${evt.source.label.replace(
+			addListToDropdown( dropdownView, items );
+			dropdownView.on( 'execute', evt => {
+				const formattedText = `[[${ evt.source.label.replace(
 					/ /g,
 					''
-				)}]]`;
-				editor.model.change(() => {
-					cbFn(editor, formattedText);
-				});
-			});
+				) }]]`;
+				editor.model.change( () => {
+					cbFn( editor, formattedText );
+				} );
+			} );
 			return dropdownView;
-		});
+		} );
 	}
 }
 
 class CustomImageUploadAdapter {
-	constructor(loader, editor) {
+	constructor( loader, editor ) {
 		this.loader = loader;
 		this.editor = editor;
 	}
@@ -111,132 +113,135 @@ class CustomImageUploadAdapter {
 	// Starts the upload process.
 	upload() {
 		return this.loader.file.then(
-			(file) =>
-				new Promise((resolve, reject) => {
+			file =>
+				new Promise( ( resolve, reject ) => {
 					this._initRequest();
-					this._initListeners(resolve, reject, file);
-					this._sendRequest(file);
-				})
+					this._initListeners( resolve, reject, file );
+					this._sendRequest( file );
+				} )
 		);
 	}
 
 	// Aborts the upload process.
 	abort() {
-		if (this.xhr) {
+		if ( this.xhr ) {
 			this.xhr.abort();
 		}
 	}
 
 	// Initializes the XMLHttpRequest object using the URL passed to the constructor.
 	_initRequest() {
-		const xhr = (this.xhr = new XMLHttpRequest());
+		// eslint-disable-next-line no-undef
+		const xhr = this.xhr = new XMLHttpRequest();
 		const editor = this.editor;
 		const { uploadUrl } = editor.config._config.simpleUpload;
-		xhr.open('POST', uploadUrl, true);
+		xhr.open( 'POST', uploadUrl, true );
 		xhr.responseType = 'json';
 	}
 
 	// Initializes XMLHttpRequest listeners.
-	_initListeners(resolve, reject, file) {
+	_initListeners( resolve, reject, file ) {
 		const xhr = this.xhr;
 		const loader = this.loader;
-		const genericErrorText = `Couldn't upload file: ${file.name}.`;
+		const genericErrorText = `Couldn't upload file: ${ file.name }.`;
 
-		xhr.addEventListener('error', () => reject(genericErrorText));
-		xhr.addEventListener('abort', () => reject());
-		xhr.addEventListener('readystatechange', () => {
-			xhr.onreadystatechange = function (e) {
+		xhr.addEventListener( 'error', () => reject( genericErrorText ) );
+		xhr.addEventListener( 'abort', () => reject() );
+		xhr.addEventListener( 'readystatechange', () => {
+			xhr.onreadystatechange = function( e ) {
 				const {
 					responseHeaders = {},
 					responseText = '{}',
 					status = '',
-					statusText = '',
+					statusText = ''
 				} = e.target;
-				if (xhr.readyState === 4 && responseHeaders['X-Cld-Error']) {
-					const errorMessage = responseHeaders['X-Cld-Error'];
-					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+				if ( xhr.readyState === 4 && responseHeaders[ 'X-Cld-Error' ] ) {
+					const errorMessage = responseHeaders[ 'X-Cld-Error' ];
+					reject( `invoke::cloudinary-helper::ERROR ${ errorMessage }` );
 				}
-				if (xhr.readyState === 4 && status === 413) {
+				if ( xhr.readyState === 4 && status === 413 ) {
 					// 413 Payload Too Large error
 					const errorMessage = statusText;
-					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+					reject( `invoke::cloudinary-helper::ERROR ${ errorMessage }` );
 				}
-				if (xhr.readyState === 4 && status === 400) {
+				if ( xhr.readyState === 4 && status === 400 ) {
 					// 400 Bad request - invalid image file
 					let resp;
 					try {
-						resp = JSON.parse(responseText);
-					} catch (err) {
-						reject('Unable to parse error message');
+						resp = JSON.parse( responseText );
+					} catch ( err ) {
+						reject( 'Unable to parse error message' );
 					}
 					const errorMessage = statusText;
 					reject(
 						`invoke::cloudinary-helper::ERROR ${
-							(resp.error && resp.error.message) || errorMessage
+							( resp.error && resp.error.message ) || errorMessage
 						}`
 					);
 				}
 			};
-		});
-		xhr.addEventListener('load', () => {
+		} );
+		xhr.addEventListener( 'load', () => {
 			const response = xhr.response;
 
-			if (!response || response.error) {
+			if ( !response || response.error ) {
 				return reject(
-					response && response.error
-						? response.error.message
-						: genericErrorText
+					response && response.error ?
+						response.error.message :
+						genericErrorText
 				);
 			}
 
-			resolve({
-				default: response.url,
-			});
-		});
+			resolve( {
+				default: response.url
+			} );
+		} );
 
 		// Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
 		// properties which are used e.g. to display the upload progress bar in the editor
 		// user interface.
-		if (xhr.upload) {
-			xhr.upload.addEventListener('progress', (evt) => {
-				if (evt.lengthComputable) {
+		if ( xhr.upload ) {
+			xhr.upload.addEventListener( 'progress', evt => {
+				if ( evt.lengthComputable ) {
 					loader.uploadTotal = evt.total;
 					loader.uploaded = evt.loaded;
 				}
-			});
+			} );
 		}
 	}
 
 	// Prepares the data and sends the request.
-	async _sendRequest(file) {
+	async _sendRequest( file ) {
 		const xhr = this.xhr;
 		const editor = this.editor;
 		const {
+			// eslint-disable-next-line camelcase
 			authorization: api_key,
 			cloudinaryParams,
-			generateSignatureCallback,
+			generateSignatureCallback
 		} = editor.config._config.simpleUpload;
 		const signature = await generateSignatureCallback();
+		// eslint-disable-next-line no-undef
 		const data = new FormData();
 
-		data.append('eager', cloudinaryParams.eager);
-		data.append('public_id', cloudinaryParams.public_id);
-		data.append('folder', cloudinaryParams.folder);
-		data.append('timestamp', cloudinaryParams.timestamp);
-		data.append('signature', signature.data.getCloudinarySignature);
-		data.append('tags', `${cloudinaryParams.tags}`);
-		data.append('file', file);
-		data.append('api_key', api_key);
+		data.append( 'eager', cloudinaryParams.eager );
+		data.append( 'public_id', cloudinaryParams.public_id );
+		data.append( 'folder', cloudinaryParams.folder );
+		data.append( 'timestamp', cloudinaryParams.timestamp );
+		data.append( 'signature', signature.data.getCloudinarySignature );
+		data.append( 'tags', `${ cloudinaryParams.tags }` );
+		data.append( 'file', file );
+		data.append( 'api_key', api_key );
 
-		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		xhr.setRequestHeader( 'X-Requested-With', 'XMLHttpRequest' );
 
-		this.xhr.send(data);
+		this.xhr.send( data );
 	}
 }
 
-function CustomImageUploadAdapterPlugin(editor) {
-	editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-		return new CustomImageUploadAdapter(loader, editor);
+function CustomImageUploadAdapterPlugin( editor ) {
+	editor.plugins.get( 'FileRepository' ).createUploadAdapter = loader => {
+		return new CustomImageUploadAdapter( loader, editor );
 	};
 }
 
@@ -288,6 +293,7 @@ DecoupledEditor.builtinPlugins = [
 	Strikethrough,
 	Underline,
 	BlockQuote,
+	CKBox,
 	CKFinder,
 	CloudServices,
 	EasyImage,
@@ -304,12 +310,13 @@ DecoupledEditor.builtinPlugins = [
 	LineHeight,
 	Link,
 	List,
-	ListStyle,
+	ListProperties,
 	MediaEmbed,
 	PageBreak,
 	Pagination,
 	Paragraph,
 	PasteFromOffice,
+	PictureEditing,
 	Table,
 	TableCellProperties,
 	TableProperties,
@@ -362,7 +369,7 @@ DecoupledEditor.defaultConfig = {
 		]
 	},
 	image: {
-		styles: ['full', 'alignLeft', 'alignRight'],
+		styles: [ 'full', 'alignLeft', 'alignRight' ],
 		resizeUnit: 'px',
 		toolbar: [
 			'imageStyle:inline',
@@ -391,7 +398,14 @@ DecoupledEditor.defaultConfig = {
 		}
 	},
 	lineHeight: {
-		options: [1, 1.15, 1.5, 2, 2.5]
+		options: [ 1, 1.15, 1.5, 2, 2.5 ]
+	},
+	list: {
+		properties: {
+			styles: true,
+			startIndex: true,
+			reversed: true
+		}
 	},
 	// This value must be kept in sync with the language defined in webpack.config.js.
 	language: 'en'

@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -14,7 +14,7 @@ function SpecialCharactersEmoji( editor ) {
 		{ title: 'wind blowing face', character: '🌬️' },
 		{ title: 'floppy disk', character: '💾' },
 		{ title: 'heart', character: '❤️' }
-	] );
+	], { label: 'Emoticons' } );
 }
 
 ClassicEditor
@@ -39,8 +39,12 @@ ClassicEditor
 				'|',
 				'undo',
 				'redo'
-			],
-			viewportTopOffset: window.getViewportTopOffsetConfig()
+			]
+		},
+		ui: {
+			viewportOffset: {
+				top: window.getViewportTopOffsetConfig()
+			}
 		},
 		image: {
 			toolbar: [

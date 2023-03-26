@@ -1,17 +1,22 @@
 ---
 category: features-image-upload
 menu-title: CKFinder file manager
-order: 30
+order: 40
+badges: [ premium ]
 ---
 
 {@snippet features/build-ckfinder-source}
 
 # CKFinder file manager integration
 
-This feature allows you to insert images as well as links to files into the rich-text editor content. It is a bridge between the CKEditor 5 WYSIWYG editor and the [CKFinder](https://ckeditor.com/ckfinder) file manager and uploader. CKFinder is a commercial application that was designed with CKEditor compatibility in mind. It is currently available as version 3.x for PHP, ASP.NET and Java and version 2.x for ASP and ColdFusion.
+This CKFinder integration feature allows you to insert images as well as links to files into the rich-text editor content. It is a bridge between the CKEditor 5 WYSIWYG editor and the [CKFinder](https://ckeditor.com/ckfinder) file manager and uploader. CKFinder is a commercial application that was designed with CKEditor compatibility in mind. It is currently available as version 3.x for PHP, ASP.NET and Java and version 2.x for ASP and ColdFusion.
 
-<info-box>
-	Check out the comprehensive {@link features/image-upload Image upload overview} to learn about other ways to upload images into CKEditor 5.
+<info-box info>
+	This is a premium feature and you need a license for it on top of your CKEditor 5 commercial license. [Contact us](https://ckeditor.com/contact/?sales=true#contact-form) to receive an offer tailored to your needs.
+
+	You can also sign up for the [CKEditor Premium Features 30-day free trial](https://orders.ckeditor.com/trial/premium-features) to test the feature.
+
+	This feature is enabled by default in all [predefined builds](https://ckeditor.com/docs/ckeditor5/latest/installation/getting-started/predefined-builds.html) for convenience, but the editor will still work properly without activating it.
 </info-box>
 
 This feature can be used in the rich-text editor in two different ways:
@@ -29,10 +34,6 @@ This feature can be used in the rich-text editor in two different ways:
 
 	Check out the [CKFinder file manager website](https://ckeditor.com/ckfinder/) to learn more about the features you can use in your project.
 
-<info-box info>
-	This feature is enabled by default in all builds.
-</info-box>
-
 ## Demo
 
 ### Image upload only
@@ -44,6 +45,10 @@ This demo shows the integration where the file manager's server connector handle
 
 {@snippet features/ckfinder-upload-only}
 
+<info-box info>
+	This demo only presents a limited set of features. Visit the {@link examples/builds/full-featured-editor full-featured editor example} to see more in action.
+</info-box>
+
 ### Full integration
 
 This demo shows the [full integration](#configuring-the-full-integration) with the CKFinder file uploader:
@@ -52,7 +57,6 @@ This demo shows the [full integration](#configuring-the-full-integration) with t
 * Use the "Insert image or file" button in the toolbar to open the CKFinder file manager and insert an image or a link to any other file.
 
 {@snippet features/ckfinder}
-
 
 ## Configuration
 
@@ -69,18 +73,18 @@ import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ CKFinder, ... ],
+		plugins: [ CKFinder, /* ... */ ],
 
 		// Enable the "Insert image" button in the toolbar.
-		toolbar: [ 'uploadImage', ... ],
+		toolbar: [ 'uploadImage', /* ... */ ],
 
 		ckfinder: {
 			// Upload the images to the server using the CKFinder QuickUpload command.
 			uploadUrl: 'https://example.com/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Images&responseType=json'
 		}
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 See the **[demo of the image upload only](#image-upload-only)**.
@@ -109,10 +113,10 @@ import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ CKFinder, ... ],
+		plugins: [ CKFinder, /* ... */ ],
 
 		// Enable the CKFinder button in the toolbar.
-		toolbar: [ 'ckfinder', ... ]
+		toolbar: [ 'ckfinder', /* ... */ ]
 
 		ckfinder: {
 			// Upload the images to the server using the CKFinder QuickUpload command.
@@ -124,8 +128,8 @@ ClassicEditor
 			}
 		}
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 See the **[demo of the full integration](#full-integration)**.
@@ -141,15 +145,15 @@ import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ CKFinder, ... ],
-		toolbar: [ 'ckfinder', ... ]
+		plugins: [ CKFinder, /* ... */ ],
+		toolbar: [ 'ckfinder', /* ... */ ]
 		ckfinder: {
 			// Open the file manager in the pop-up window.
 			openerMethod: 'popup'
 		}
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ### Configuring allowed file types
@@ -172,7 +176,7 @@ Use the `allowedExtensions` configuration option to define the file extension al
 ## Installation
 
 <info-box info>
-	This feature is enabled by default in all builds. The installation instructions are for developers interested in building their own, custom WYSIWYG editor.
+	This feature is enabled by default in all predefined builds. The installation instructions are for developers interested in building their own, custom WYSIWYG editor.
 </info-box>
 
 To add this feature to your editor, install the [`@ckeditor/ckeditor5-ckfinder`](https://www.npmjs.com/package/@ckeditor/ckeditor5-ckfinder) package:
@@ -188,14 +192,15 @@ import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ CKFinder, ... ],
-		toolbar: [ 'ckfinder', 'uploadImage' ... ], // Depending on your preference.
+		plugins: [ CKFinder, /* ... */ ],
+		toolbar: [ 'ckfinder', 'uploadImage', /* ... */ ], // Depending on your preference.
 		ckfinder: {
 			// Feature configuration.
+			// ...
 		}
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ## Common API
@@ -228,5 +233,4 @@ See the {@link features/images-overview image feature guide} to find out more ab
 
 ## Contribute
 
-The source code of the feature is available on GitHub in https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-ckfinder.
-
+The source code of the feature is available on GitHub in [https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-ckfinder](https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-ckfinder).

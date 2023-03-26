@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -8,13 +8,13 @@
  */
 
 import { Plugin } from 'ckeditor5/src/core';
-import { updateFindResultFromRange } from './utils';
 import FindCommand from './findcommand';
 import ReplaceCommand from './replacecommand';
 import ReplaceAllCommand from './replaceallcommand';
 import FindNextCommand from './findnextcommand';
 import FindPreviousCommand from './findpreviouscommand';
 import FindAndReplaceState from './findandreplacestate';
+import FindAndReplaceUtils from './findandreplaceutils';
 
 // eslint-disable-next-line ckeditor5-rules/ckeditor-imports
 import { scrollViewportToShowTarget } from '@ckeditor/ckeditor5-utils/src/dom/scroll';
@@ -26,9 +26,10 @@ import '../theme/findandreplace.css';
 const HIGHLIGHT_CLASS = 'ck-find-result_selected';
 
 // Reacts to document changes in order to update search list.
-function onDocumentChange( results, model, searchCallback ) {
+function onDocumentChange( results, editor, searchCallback ) {
 	const changedNodes = new Set();
 	const removedMarkers = new Set();
+	const model = editor.model;
 
 	const changes = model.document.differ.getChanges();
 
@@ -73,7 +74,8 @@ function onDocumentChange( results, model, searchCallback ) {
 
 	// Run search callback again on updated nodes.
 	changedNodes.forEach( nodeToCheck => {
-		updateFindResultFromRange( model.createRangeOn( nodeToCheck ), model, searchCallback, results );
+		const findAndReplaceUtils = editor.plugins.get( 'FindAndReplaceUtils' );
+		findAndReplaceUtils.updateFindResultFromRange( model.createRangeOn( nodeToCheck ), model, searchCallback, results );
 	} );
 }
 
@@ -86,6 +88,13 @@ export default class FindAndReplaceEditing extends Plugin {
 	/**
 	 * @inheritDoc
 	 */
+	static get requires() {
+		return [ FindAndReplaceUtils ];
+	}
+
+	/**
+	 * @inheritDoc
+	 */
 	static get pluginName() {
 		return 'FindAndReplaceEditing';
 	}
@@ -94,7 +103,13 @@ export default class FindAndReplaceEditing extends Plugin {
 	 * @inheritDoc
 	 */
 	init() {
-		this.activeResults = null;
+		/**
+		 * The collection of currently highlighted search results.
+		 *
+		 * @private
+		 * @member {module:utils/collection~Collection} #_activeResults
+		 */
+		this._activeResults = null;
 
 		/**
 		 * An object storing the find and replace state within a given editor instance.
@@ -138,6 +153,7 @@ export default class FindAndReplaceEditing extends Plugin {
 		// This would result with accessing a view three that is no longer in DOM.
 		this.listenTo( this.editor, 'destroy', debouncedScrollListener.cancel );
 
+		/* istanbul ignore next */
 		function scrollToHighlightedResult( eventInfo, name, newValue ) {
 			if ( newValue ) {
 				const domConverter = this.editor.editing.view.domConverter;
@@ -163,19 +179,19 @@ export default class FindAndReplaceEditing extends Plugin {
 
 		const { findCallback, results } = editor.execute( 'find', callbackOrText );
 
-		this.activeResults = results;
+		this._activeResults = results;
 
 		// @todo: handle this listener, another copy is in findcommand.js file.
-		this.listenTo( model.document, 'change:data', () => onDocumentChange( this.activeResults, model, findCallback ) );
+		this.listenTo( model.document, 'change:data', () => onDocumentChange( this._activeResults, editor, findCallback ) );
 
-		return this.activeResults;
+		return this._activeResults;
 	}
 
 	/**
 	 * Stops active results from updating, and clears out the results.
 	 */
 	stop() {
-		if ( !this.activeResults ) {
+		if ( !this._activeResults ) {
 			return;
 		}
 
@@ -183,10 +199,12 @@ export default class FindAndReplaceEditing extends Plugin {
 
 		this.state.clear( this.editor.model );
 
-		this.activeResults = null;
+		this._activeResults = null;
 	}
 
 	/**
+	 * Sets up the commands.
+	 *
 	 * @private
 	 */
 	_defineCommands() {
@@ -198,6 +216,8 @@ export default class FindAndReplaceEditing extends Plugin {
 	}
 
 	/**
+	 * Sets up the marker downcast converters for search results highlighting.
+	 *
 	 * @private
 	 */
 	_defineConverters() {

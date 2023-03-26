@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -59,7 +59,7 @@ describe( 'LinkImageUI', () => {
 
 			listenToSpy( viewDocument, 'click' );
 
-			viewDocument.fire( 'click' );
+			viewDocument.fire( 'click', { domEvent: {} } );
 
 			sinon.assert.calledOnce( listenToSpy );
 		} );
@@ -200,12 +200,15 @@ describe( 'LinkImageUI', () => {
 
 				editor.setData( '<figure class="image"><a href="https://example.com"><img src="" /></a></figure>' );
 
+				editor.ui.focusTracker.isFocused = true;
+
 				editor.model.change( writer => {
 					writer.setSelection( root.getChild( 0 ), 'on' );
 				} );
 
 				linkButton.fire( 'execute' );
 
+				expect( linkUIPlugin._balloon.visibleView ).to.be.not.null;
 				expect( linkUIPlugin._balloon.visibleView ).to.equals( linkUIPlugin.actionsView );
 			} );
 

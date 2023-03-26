@@ -1,7 +1,7 @@
 ---
 category: framework-contributing
 order: 30
-modified_at: 2021-08-24
+modified_at: 2022-11-03
 ---
 
 # Code style
@@ -205,7 +205,7 @@ Whenever there is a multi-line function call:
 
 * Put the first parameter in a new line.
 * Put every parameter in a separate line indented by one tab.
-* Put the last closing parenthesis in a new line, at the same indendation level as the beginning of the call.
+* Put the last closing parenthesis in a new line, at the same indentation level as the beginning of the call.
 
 Examples:
 
@@ -653,7 +653,7 @@ Plugins should follow the **feature** or the **feature + sub-feature** conventio
 	* `SpecialCharacters`
 * The **feature + sub-feature** convention:
 	* `ImageResize`
-	* `ListStyle`
+	* `ListProperties`
 	* `TableClipboard`
 
 Plugins must be named in [UpperCamelCase](http://en.wikipedia.org/wiki/CamelCase).
@@ -818,7 +818,7 @@ import CKEditorError from '@ckeditor/ckeditor5-utils/src/ckeditorerror';
 
 ### Description of an error: `ckeditor5-rules/ckeditor-error-message`
 
-Each time a new error is created, it needs a description to be displayed on the {@link framework/guides/support/error-codes error codes} page, like this:
+Each time a new error is created, it needs a description to be displayed on the {@link support/error-codes error codes} page, like this:
 
 👎&nbsp; Examples of incorrect code for this rule:
 
@@ -859,7 +859,7 @@ throw new CKEditorError( 'editor-wrong-element', this );
 
 To make CKEditor 5 plugins compatible with each other, we needed to introduce limitations when importing files from packages.
 
-Packages marked as "Base DLL build" can import between themselves without any restrictions. Names of these packages are specified in the {@link builds/guides/development/dll-builds#anatomy-of-a-dll-build DLL builds} guide.
+Packages marked as "Base DLL build" can import between themselves without any restrictions. Names of these packages are specified in the {@link installation/advanced/dll-builds#anatomy-of-a-dll-build DLL builds} guide.
 
 The other CKEditor 5 features (non-DLL) can import "Base DLL" packages using the `ckeditor5` package.
 
@@ -897,7 +897,94 @@ import { createImageViewElement } from '@ckeditor/ckeditor5-image/src/image/util
 
 To use the `createImageViewElement()` function, consider implementing a utils plugin that will expose the required function in the `ckeditor5-image` package.
 
+When importing a DLL package from another DLL package, an import statement must use the full name of the imported package instead of using the `ckeditor5` notation.
+
+👎&nbsp; Examples of incorrect code for this rule:
+
+```js
+// Assume we edit a file located in the path: `packages/ckeditor5-widget/src/widget.js`
+
+import { Plugin } from 'ckeditor5/src/core';
+```
+
+👍&nbsp; Examples of correct code for this rule:
+
+```js
+// Assume we edit a file located in the path: `packages/ckeditor5-widget/src/widget.js`
+
+import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
+```
+
 History of changes:
 
 * [Force importing using the `ckeditor5` package.](https://github.com/ckeditor/ckeditor5/issues/8581)
 * [Imports from the `ckeditor5` package must use the `src/` directory.](https://github.com/ckeditor/ckeditor5/issues/10030)
+* [Imports between DLL packages must use full names of packages.](https://github.com/ckeditor/ckeditor5/issues/10375)
+
+### Cross package imports: `ckeditor5-rules/no-cross-package-imports`
+
+It is allowed to import modules from other packages:
+
+```js
+import { toArray } from 'ckeditor5/src/utils';
+```
+
+However, some packages cannot import modules from CKEditor 5 as it could lead to code duplication and errors in runtime. Hence, the rule disables this kind of import.
+
+Currently, it applies to the `@ckeditor/ckeditor5-watchdog` package.
+
+👎&nbsp; Examples of an incorrect code for this rule:
+
+```js
+// Assume we edit a file located in the `packages/ckeditor5-watchdog/` directory.
+
+import { toArray } from 'ckeditor5/src/utils';
+import { toArray } from '@ckeditor/ckeditor5-utils';
+import toArray from '@ckeditor/ckeditor5-utils/src/toarray';
+```
+
+[History of the change.](https://github.com/ckeditor/ckeditor5/issues/9318)
+
+### Importing modules in debug comments: `ckeditor5-rules/use-require-for-debug-mode-imports`
+
+The debug mode allows importing additional modules for testing purposes. Unfortunately, the debug comment is not removed, so webpack reports the following error.
+
+```
+Module parse failed: 'import' and 'export' may only appear at the top level (15204:20)
+File was processed with these loaders:
+ * ./node_modules/@ckeditor/ckeditor5-dev-tests/lib/utils/ck-debug-loader.js
+You may need an additional loader to handle the result of these loaders.
+|  */
+|
+> /* @if CK_DEBUG */  import { CKEditorError } from 'ckeditor5/src/utils';
+|
+| /**
+```
+
+Modules need to be imported with a `require()` function.
+
+To create a code executed only in the debug mode, follow the description of the `--debug` flag in the {@link framework/guides/contributing/testing-environment#running-manual-tests testing environment} guide.
+
+👎&nbsp; Examples of incorrect code for this rule:
+
+```js
+// @if CK_DEBUG // import defaultExport from 'module-name';
+// @if CK_DEBUG // import * as name from 'module-name';
+// @if CK_DEBUG // import { testFunction } from 'module-name';
+// @if CK_DEBUG // import { default as alias } from 'module-name';
+// @if CK_DEBUG // import { exported as alias } from 'module-name';
+// @if CK_DEBUG // import 'module-name';
+```
+
+👍&nbsp; Examples of correct code for this rule:
+
+```js
+// @if CK_DEBUG // const defaultExport = require( 'module-name' ).default;
+// @if CK_DEBUG // const name = require( 'module-name' );
+// @if CK_DEBUG // const { testFunction } = require( 'module-name' );
+// @if CK_DEBUG // const alias = require( 'module-name' ).default;
+// @if CK_DEBUG // const { exported: alias } = require( 'module-name' );
+// @if CK_DEBUG // require( 'module-name' );
+```
+
+[History of the change.](https://github.com/ckeditor/ckeditor5/issues/12479)

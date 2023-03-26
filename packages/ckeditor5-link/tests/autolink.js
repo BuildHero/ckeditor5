@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -10,6 +10,7 @@ import Input from '@ckeditor/ckeditor5-typing/src/input';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import ShiftEnter from '@ckeditor/ckeditor5-enter/src/shiftenter';
 import UndoEditing from '@ckeditor/ckeditor5-undo/src/undoediting';
+import DomEventData from '@ckeditor/ckeditor5-engine/src/view/observer/domeventdata';
 import { getData, setData } from '@ckeditor/ckeditor5-engine/src/dev-utils/model';
 
 import LinkEditing from '../src/linkediting';
@@ -236,6 +237,26 @@ describe( 'AutoLink', () => {
 			);
 		} );
 
+		it( 'does not autolink address without protocol (defaultProtocol is not set or not valid)', () => {
+			editor.config.set( 'link.defaultProtocol', '' );
+			simulateTyping( 'www.cksource.com ' );
+
+			expect( getData( model ) ).to.equal(
+				'<paragraph>www.cksource.com []</paragraph>'
+			);
+		} );
+
+		it( 'does not autolink if link is already created', () => {
+			setData( model, '<paragraph><$text linkHref="http://www.cksource.com">http://www.cksource.com</$text>[]</paragraph>' );
+
+			const plugin = editor.plugins.get( 'AutoLink' );
+			const spy = sinon.spy( plugin, '_persistAutoLink' );
+
+			editor.execute( 'enter' );
+
+			sinon.assert.notCalled( spy );
+		} );
+
 		// Some examples came from https://mathiasbynens.be/demo/url-regex.
 		describe( 'supported URL', () => {
 			const supportedURLs = [
@@ -244,7 +265,6 @@ describe( 'AutoLink', () => {
 				'https://cksource.com:8080',
 				'http://www.cksource.com',
 				'hTtP://WwW.cKsOuRcE.cOm',
-				'www.cksource.com',
 				'http://foo.bar.cksource.com',
 				'http://www.cksource.com/some/path/index.html#abc',
 				'http://www.cksource.com/some/path/index.html?foo=bar',
@@ -302,7 +322,7 @@ describe( 'AutoLink', () => {
 			}
 		} );
 
-		describe( 'invalid or supported URL', () => {
+		describe( 'invalid or unsupported URL', () => {
 			// Some examples came from https://mathiasbynens.be/demo/url-regex.
 			const unsupportedOrInvalid = [
 				'http://',
@@ -388,6 +408,45 @@ describe( 'AutoLink', () => {
 				'<paragraph>[]</paragraph>'
 			);
 		} );
+
+		it( 'should undo auto-linking by pressing backspace', () => {
+			const viewDocument = editor.editing.view.document;
+			const deleteEvent = new DomEventData(
+				viewDocument,
+				{ preventDefault: sinon.spy() },
+				{ direction: 'backward', unit: 'codePoint', sequence: 1 }
+			);
+
+			simulateTyping( ' ' );
+
+			viewDocument.fire( 'delete', deleteEvent );
+
+			expect( getData( model ) ).to.equal(
+				'<paragraph>https://www.cksource.com []</paragraph>'
+			);
+		} );
+
+		// https://github.com/ckeditor/ckeditor5/issues/12447
+		it( 'should not undo auto-linking by pressing backspace after any other change has been made', () => {
+			const viewDocument = editor.editing.view.document;
+			const deleteEvent = new DomEventData(
+				viewDocument,
+				{ preventDefault: sinon.spy() },
+				{ direction: 'backward', unit: 'codePoint', sequence: 1 }
+			);
+
+			simulateTyping( ' abc' );
+
+			viewDocument.fire( 'delete', deleteEvent );
+			viewDocument.fire( 'delete', deleteEvent );
+			viewDocument.fire( 'delete', deleteEvent );
+			viewDocument.fire( 'delete', deleteEvent );
+			viewDocument.fire( 'delete', deleteEvent );
+
+			expect( getData( model ) ).to.equal(
+				'<paragraph><$text linkHref="https://www.cksource.com">https://www.cksource.co</$text>[]</paragraph>'
+			);
+		} );
 	} );
 
 	describe( 'Code blocks integration', () => {
@@ -445,7 +504,7 @@ describe( 'AutoLink', () => {
 		const letters = text.split( '' );
 
 		for ( const letter of letters ) {
-			editor.execute( 'input', { text: letter } );
+			editor.execute( 'insertText', { text: letter } );
 		}
 	}
 } );
