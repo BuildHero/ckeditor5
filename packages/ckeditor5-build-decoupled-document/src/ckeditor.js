@@ -52,7 +52,7 @@ import { Plugin } from '@ckeditor/ckeditor5-core/src';
 import { createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
 import smartfieldIcon from './smartfieldIcon.svg';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
-import LineHeight from 'ckeditor5-line-height-plugin/src/lineheight';
+// import LineHeight from 'ckeditor5-line-height-plugin/src/lineheight';
 
 class InsertSmartField extends Plugin {
 	init() {
@@ -307,7 +307,7 @@ DecoupledEditor.builtinPlugins = [
 	Indent,
 	IndentBlock,
 	InsertSmartField,
-	LineHeight,
+	// LineHeight,
 	Link,
 	List,
 	ListProperties,
@@ -350,7 +350,7 @@ DecoupledEditor.defaultConfig = {
 			'outdent',
 			'indent',
 			'|',
-			'lineHeight',
+			// 'lineHeight',
 			'|',
 			'link',
 			'blockquote',
@@ -397,9 +397,9 @@ DecoupledEditor.defaultConfig = {
 			backgroundColors: customColorPalette
 		}
 	},
-	lineHeight: {
-		options: [ 1, 1.15, 1.5, 2, 2.5 ]
-	},
+	// lineHeight: {
+	// 	options: [ 1, 1.15, 1.5, 2, 2.5 ]
+	// },
 	list: {
 		properties: {
 			styles: true,
