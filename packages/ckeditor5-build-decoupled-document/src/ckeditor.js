@@ -35,7 +35,7 @@ import Link from '@ckeditor/ckeditor5-link/src/link';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import ListProperties from '@ckeditor/ckeditor5-list/src/listproperties';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
-import Pagination from '@ckeditor/ckeditor5-pagination/src/pagination';
+// import Pagination from '@ckeditor/ckeditor5-pagination/src/pagination';
 import PageBreak from '@ckeditor/ckeditor5-page-break/src/pagebreak';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice';
@@ -313,7 +313,7 @@ DecoupledEditor.builtinPlugins = [
 	ListProperties,
 	MediaEmbed,
 	PageBreak,
-	Pagination,
+	// Pagination,
 	Paragraph,
 	PasteFromOffice,
 	PictureEditing,
@@ -361,10 +361,10 @@ DecoupledEditor.defaultConfig = {
 			'undo',
 			'redo',
 			'pageBreak',
-			'previousPage',
-			'nextPage',
-			'pageNavigation',
-			'|',
+			// 'previousPage',
+			// 'nextPage',
+			// 'pageNavigation',
+			// '|',
 			'insertSmartField'
 		]
 	},
