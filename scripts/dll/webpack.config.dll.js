@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -10,10 +10,11 @@ const webpack = require( 'webpack' );
 const TerserPlugin = require( 'terser-webpack-plugin' );
 const WrapperPlugin = require( 'wrapper-webpack-plugin' );
 const { bundler, styles } = require( '@ckeditor/ckeditor5-dev-utils' );
-const CKEditorWebpackPlugin = require( '@ckeditor/ckeditor5-dev-webpack-plugin' );
+const { CKEditorTranslationsPlugin } = require( '@ckeditor/ckeditor5-dev-translations' );
 
 const ROOT_DIRECTORY = path.resolve( __dirname, '..', '..' );
-const IS_DEVELOPMENT_MODE = process.argv.includes( '--dev' );
+const IS_DEVELOPMENT_MODE = process.argv.includes( '--mode=development' );
+const { CI } = process.env;
 
 if ( ROOT_DIRECTORY !== process.cwd() ) {
 	throw new Error( 'This script should be called from the package root directory.' );
@@ -84,7 +85,7 @@ const webpackConfig = {
 		libraryTarget: 'window'
 	},
 	plugins: [
-		new CKEditorWebpackPlugin( {
+		new CKEditorTranslationsPlugin( {
 			// UI language. Language codes follow the https://en.wikipedia.org/wiki/ISO_639-1 format.
 			language: 'en',
 			additionalLanguages: 'all',
@@ -105,6 +106,9 @@ const webpackConfig = {
 			footer: `( ( fn, root ) => fn( root ) )( ${ loadCKEditor5modules.toString() }, window );`
 		} )
 	],
+	resolve: {
+		extensions: [ '.ts', '.js', '.json' ]
+	},
 	module: {
 		rules: [
 			{
@@ -123,16 +127,23 @@ const webpackConfig = {
 							}
 						}
 					},
+					'css-loader',
 					{
 						loader: 'postcss-loader',
-						options: styles.getPostCssConfig( {
-							themeImporter: {
-								themePath: require.resolve( '@ckeditor/ckeditor5-theme-lark' )
-							},
-							minify: true
-						} )
+						options: {
+							postcssOptions: styles.getPostCssConfig( {
+								themeImporter: {
+									themePath: require.resolve( '@ckeditor/ckeditor5-theme-lark' )
+								},
+								minify: true
+							} )
+						}
 					}
 				]
+			},
+			{
+				test: /\.ts$/,
+				use: [ 'ts-loader' ]
 			}
 		]
 	}
@@ -152,6 +163,12 @@ if ( !IS_DEVELOPMENT_MODE ) {
 			extractComments: false
 		} )
 	];
+}
+
+if ( CI ) {
+	webpackConfig.cache = {
+		type: 'filesystem'
+	};
 }
 
 module.exports = webpackConfig;

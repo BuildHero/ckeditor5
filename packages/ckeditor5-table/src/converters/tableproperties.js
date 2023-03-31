@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -17,9 +17,10 @@
  * @param {String} options.viewElement The view element name that should be converted.
  * @param {String} options.defaultValue The default value for the specified `modelAttribute`.
  * @param {Boolean} [options.reduceBoxSides=false]
+ * @param {Function} [options.shouldUpcast] The function which returns `true` if style should be upcasted from this element.
  */
 export function upcastStyleToAttribute( conversion, options ) {
-	const { viewElement, defaultValue, modelAttribute, styleName, reduceBoxSides = false } = options;
+	const { viewElement, defaultValue, modelAttribute, styleName, reduceBoxSides = false, shouldUpcast = () => true } = options;
 
 	conversion.for( 'upcast' ).attributeToAttribute( {
 		view: {
@@ -31,6 +32,10 @@ export function upcastStyleToAttribute( conversion, options ) {
 		model: {
 			key: modelAttribute,
 			value: viewElement => {
+				if ( !shouldUpcast( viewElement ) ) {
+					return;
+				}
+
 				const normalized = viewElement.getNormalizedStyle( styleName );
 				const value = reduceBoxSides ? reduceBoxSidesValue( normalized ) : normalized;
 
@@ -47,12 +52,13 @@ export function upcastStyleToAttribute( conversion, options ) {
  *
  * @param {module:engine/conversion/conversion~Conversion} conversion
  * @param {String} viewElementName
+ * @param {Object} modelAttributes
  * @param {Object} defaultBorder The default border values.
  * @param {String} defaultBorder.color The default `borderColor` value.
  * @param {String} defaultBorder.style The default `borderStyle` value.
  * @param {String} defaultBorder.width The default `borderWidth` value.
  */
-export function upcastBorderStyles( conversion, viewElementName, defaultBorder ) {
+export function upcastBorderStyles( conversion, viewElementName, modelAttributes, defaultBorder ) {
 	conversion.for( 'upcast' ).add( dispatcher => dispatcher.on( 'element:' + viewElementName, ( evt, data, conversionApi ) => {
 		// If the element was not converted by element-to-element converter,
 		// we should not try to convert the style. See #8393.
@@ -107,15 +113,15 @@ export function upcastBorderStyles( conversion, viewElementName, defaultBorder )
 		};
 
 		if ( reducedBorder.style !== defaultBorder.style ) {
-			conversionApi.writer.setAttribute( 'borderStyle', reducedBorder.style, modelElement );
+			conversionApi.writer.setAttribute( modelAttributes.style, reducedBorder.style, modelElement );
 		}
 
 		if ( reducedBorder.color !== defaultBorder.color ) {
-			conversionApi.writer.setAttribute( 'borderColor', reducedBorder.color, modelElement );
+			conversionApi.writer.setAttribute( modelAttributes.color, reducedBorder.color, modelElement );
 		}
 
 		if ( reducedBorder.width !== defaultBorder.width ) {
-			conversionApi.writer.setAttribute( 'borderWidth', reducedBorder.width, modelElement );
+			conversionApi.writer.setAttribute( modelAttributes.width, reducedBorder.width, modelElement );
 		}
 	} ) );
 }

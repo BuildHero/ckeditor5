@@ -5,11 +5,15 @@ menu-title: Text part language
 
 # Text part language
 
-The {@link module:language/textpartlanguage~TextPartLanguage} feature provides the ability to mark the language of selected text fragments. It makes working with multilingual content convenient and ensures that user agents can correctly present the content written in multiple languages, so graphical browsers and screen readers are able to identify how to pronounce text and display characters.
+The text part language feature provides the ability to mark the language of selected text fragments. It makes working with multilingual content convenient and ensures that user agents can correctly present the content written in multiple languages, so graphical browsers and screen readers are able to identify how to pronounce text and display characters.
 
 This feature is especially useful when your content includes text sections written in different text directions, e.g. when the whole content is written in English but includes some citations in Arabic.
 
 The text part language feature implements the [WCAG 3.1.2 Language of Parts](https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-other-lang-id.html) specification.
+
+<info-box info>
+	The Text part language feature is enabled by default in the {@link installation/getting-started/predefined-builds#superbuild superbuild} only. See the [installation](#installation) section to learn how to enable it in your editor.
+</info-box>
 
 ## Demo
 
@@ -17,12 +21,40 @@ Use the language toolbar dropdown in the editor below to see the feature in acti
 
 {@snippet features/textpartlanguage}
 
+<info-box info>
+	This demo only presents a limited set of features. Visit the {@link examples/builds/full-featured-editor full-featured editor example} to see more in action.
+</info-box>
+
 ## Related features
 
 There are other language-related CKEditor 5 features you may want to check:
 
 * {@link features/ui-language UI Language}  &ndash; Set the UI language.
 * {@link features/spelling-and-grammar-checking Spelling and grammar checking} &ndash; Employ multi-language spell check for flawless content.
+
+## Configuring available languages
+
+To modify the list of available languages displayed in the language dropdown use the {@link module:core/editor/editorconfig~LanguageConfig#textPartLanguage `config.language.textPartLanguage`} configuration option.
+
+The example below shows the configuration used for the [demo](#demo) above:
+
+```js
+ClassicEditor
+    .create( document.querySelector( '#editor' ), {
+		// More of editor's config.
+		// ...
+		language: {
+			textPartLanguage: [
+				{ title: 'Arabic', languageCode: 'ar' },
+				{ title: 'French', languageCode: 'fr' },
+				{ title: 'Hebrew', languageCode: 'he' },
+				{ title: 'Spanish', languageCode: 'es' }
+			]
+		}
+    } )
+    .then( /* ... */ )
+    .catch( /* ... */ );
+```
 
 ## Installation
 
@@ -39,15 +71,15 @@ import TextPartLanguage from '@ckeditor/ckeditor5-language/src/textpartlanguage'
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ TextPartLanguage, ... ],
-		toolbar: [ 'textPartLanguage', ... ]
+		plugins: [ TextPartLanguage, /* ... */ ],
+		toolbar: [ 'textPartLanguage', /* ... */ ]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 <info-box info>
-	Read more about {@link builds/guides/integration/installing-plugins installing plugins}.
+	Read more about {@link installation/getting-started/installing-plugins installing plugins}.
 </info-box>
 
 ## Common API
@@ -70,4 +102,4 @@ editor.execute( 'textPartLanguage', { languageCode: 'es' } );
 
 ## Contribute
 
-The source code of the feature is available on GitHub in https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-language.
+The source code of the feature is available on GitHub in [https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-language](https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-language).

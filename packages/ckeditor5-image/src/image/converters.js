@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -39,10 +39,13 @@ export function upcastImageFigure( imageUtils ) {
 		// Find an image element inside the figure element.
 		const viewImage = imageUtils.findViewImgElement( data.viewItem );
 
-		// Do not convert if image element is absent, is missing src attribute or was already converted.
-		if ( !viewImage || !viewImage.hasAttribute( 'src' ) || !conversionApi.consumable.test( viewImage, { name: true } ) ) {
+		// Do not convert if image element is absent or was already converted.
+		if ( !viewImage || !conversionApi.consumable.test( viewImage, { name: true } ) ) {
 			return;
 		}
+
+		// Consume the figure to prevent other converters from processing it again.
+		conversionApi.consumable.consume( data.viewItem, { name: true, classes: 'image' } );
 
 		// Convert view image to model image.
 		const conversionResult = conversionApi.convertItem( viewImage, data.modelCursor );
@@ -52,6 +55,9 @@ export function upcastImageFigure( imageUtils ) {
 
 		// When image wasn't successfully converted then finish conversion.
 		if ( !modelImage ) {
+			// Revert consumed figure so other features can convert it.
+			conversionApi.consumable.revert( data.viewItem, { name: true, classes: 'image' } );
+
 			return;
 		}
 
@@ -76,7 +82,7 @@ export function upcastImageFigure( imageUtils ) {
  * @returns {Function}
  */
 export function upcastPicture( imageUtils ) {
-	const sourceAttributeNames = [ 'srcset', 'media', 'type' ];
+	const sourceAttributeNames = [ 'srcset', 'media', 'type', 'sizes' ];
 
 	return dispatcher => {
 		dispatcher.on( 'element:picture', converter );
@@ -136,12 +142,6 @@ export function upcastPicture( imageUtils ) {
 			data.modelCursor = conversionResult.modelCursor;
 
 			modelImage = first( conversionResult.modelRange.getItems() );
-
-			// It could be that the <img/> was broken (e.g. missing "src"). There's no point in converting
-			// <picture> any further around a broken <img/>.
-			if ( !modelImage ) {
-				return;
-			}
 		}
 
 		conversionApi.consumable.consume( pictureViewElement, { name: true } );
@@ -235,13 +235,11 @@ export function downcastSourcesAttribute( imageUtils ) {
 
 		if ( data.attributeNewValue && data.attributeNewValue.length ) {
 			// Make sure <picture> does not break attribute elements, for instance <a> in linked images.
-			const pictureElement = viewWriter.createContainerElement( 'picture', {}, { isAllowedInsideAttributeElement: true } );
-
-			for ( const sourceAttributes of data.attributeNewValue ) {
-				const sourceElement = viewWriter.createEmptyElement( 'source', sourceAttributes );
-
-				viewWriter.insert( viewWriter.createPositionAt( pictureElement, 'end' ), sourceElement );
-			}
+			const pictureElement = viewWriter.createContainerElement( 'picture', null,
+				data.attributeNewValue.map( sourceAttributes => {
+					return viewWriter.createEmptyElement( 'source', sourceAttributes );
+				} )
+			);
 
 			// Collect all wrapping attribute elements.
 			const attributeElements = [];

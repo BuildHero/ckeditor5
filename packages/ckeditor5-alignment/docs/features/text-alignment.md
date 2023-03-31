@@ -5,13 +5,21 @@ category: features
 
 {@snippet features/build-text-alignment-source}
 
-The {@link module:alignment/alignment~Alignment} feature enables support for text alignment. You can use it to align your content to left, right and center or to justify it.
+The alignment feature enables support for text alignment. You can use it to align your content to left, right and center or to justify it.
+
+<info-box info>
+	The alignment feature is enabled by default in the {@link installation/getting-started/predefined-builds#document-editor document editor build} and {@link installation/getting-started/predefined-builds#superbuild superbuild} only. See the [installation](#installation) section to learn how to enable it in your editor.
+</info-box>
 
 ## Demo
 
-Click inside a paragraph or a header and use the toolbar dropdown {@icon @ckeditor/ckeditor5-core/theme/icons/align-right.svg Text alignment} to apply desired alignment to a paragraph
+Click inside a paragraph or a header and use the toolbar dropdown {@icon @ckeditor/ckeditor5-core/theme/icons/align-right.svg Text alignment} to apply desired alignment to a paragraph.
 
 {@snippet features/text-alignment}
+
+<info-box info>
+	This demo only presents a limited set of features. Visit the {@link examples/builds/full-featured-editor full-featured editor example} to see more in action.
+</info-box>
 
 ## Related features
 
@@ -44,8 +52,8 @@ ClassicEditor
 			'heading', '|', 'bulletedList', 'numberedList', 'alignment', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 {@snippet features/custom-text-alignment-options}
@@ -73,8 +81,8 @@ ClassicEditor
 			'heading', '|', 'bulletedList', 'numberedList', 'alignment', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ## Configuring the toolbar
@@ -88,8 +96,8 @@ ClassicEditor
 			'heading', '|', 'alignment:left', 'alignment:right', 'alignment:center', 'alignment:justify'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 {@snippet features/custom-text-alignment-toolbar}
@@ -109,15 +117,15 @@ import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ Alignment, ... ],
-		toolbar: [ 'alignment', ... ]
+		plugins: [ Alignment, /* ... */ ],
+		toolbar: [ 'alignment', /* ... */ ]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 <info-box info>
-	Read more about {@link builds/guides/integration/installing-plugins installing plugins}.
+	Read more about {@link installation/getting-started/installing-plugins installing plugins}.
 </info-box>
 
 ## Common API
@@ -149,4 +157,4 @@ Block elements such as `<p>` with the `align` attribute are accepted by the plug
 
 ## Contribute
 
-The source code of the feature is available on GitHub in https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-alignment.
+The source code of the feature is available on GitHub in [https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-alignment](https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-alignment).

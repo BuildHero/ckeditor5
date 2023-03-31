@@ -5,7 +5,7 @@ category: features
 
 {@snippet features/build-font-source}
 
-The {@link module:font/font~Font} plugin provides extended text formatting options for the document content.
+The font feature provides extended text formatting options for the document content.
 
 The font styles, just like the {@link features/basic-styles basic text styles} can serve numerous purposes. Font size setting can be applied globally or to a selected part of the text only making it catch the eye of the reader. Using different font families can help differentiate between sections of the content that serve various purposes (e.g. main text and a side quotation or a recap). Different font colors can work as markers and guides just like font background colors, that stand out even more and draw attention.
 
@@ -19,16 +19,25 @@ The plugin enables the following features in the rich-text editor:
 	All font formatting can be removed with the {@link features/remove-format remove format} feature.
 </info-box>
 
+<info-box info>
+	The font styles feature is enabled by default in the {@link installation/getting-started/predefined-builds#document-editor document editor build} and {@link installation/getting-started/predefined-builds#superbuild superbuild} only. See the [installation](#installation) section to learn how to enable it in your editor.
+</info-box>
+
 ## Demo
 
 Use the toolbar dropdowns in the demo below to control font size {@icon @ckeditor/ckeditor5-font/theme/icons/font-size.svg Font size} and font family {@icon @ckeditor/ckeditor5-font/theme/icons/font-family.svg Font family}. You can also change both the font color {@icon @ckeditor/ckeditor5-font/theme/icons/font-color.svg Font color} and font background color {@icon @ckeditor/ckeditor5-font/theme/icons/font-background.svg Font background color}.
 
 {@snippet features/font}
 
+<info-box info>
+	This demo only presents a limited set of features. Visit the {@link examples/builds/full-featured-editor full-featured editor example} to see more in action.
+</info-box>
+
 ## Related features
 
 Here are some more CKEditor 5 features that can help you format your content:
 * {@link features/basic-styles Basic text styles} &ndash; The essentials, like **bold**, *italic* and others.
+* {@link features/style Styles} &ndash; Apply pre-configured styles to existing elements in the editor content.
 * {@link features/text-alignment Text alignment} &ndash; Because it does matter whether the content is left, right, centered or justified.
 * {@link features/headings Headings} &ndash; Divide your content into sections.
 * {@link features/highlight Highlight} &ndash; Mark important words and passages, aiding a review or drawing attention to specific parts of content.
@@ -56,8 +65,8 @@ ClassicEditor
 			'heading', 'bulletedList', 'numberedList', 'fontFamily', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 {@snippet features/custom-font-family-options}
@@ -71,14 +80,16 @@ ClassicEditor
 	.create( document.querySelector( '#editor' ), {
 		fontFamily: {
 			options: [
+				// Font family configuration options are described in the "Configuring the font family feature" section.
 				// ...
 			],
 			supportAllValues: true
 		},
+		// More of editor's config.
         // ...
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ## Configuring the font size feature
@@ -142,8 +153,8 @@ ClassicEditor
 			'heading', 'bulletedList', 'numberedList', 'fontSize', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 {@snippet features/custom-font-size-named-options}
@@ -178,8 +189,8 @@ ClassicEditor
 			'heading', 'bulletedList', 'numberedList', 'fontSize', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 {@snippet features/custom-font-size-numeric-options}
@@ -194,13 +205,15 @@ ClassicEditor
 		fontSize: {
 			options: [
 				// Numerical values.
+				// ...
 			],
 			supportAllValues: true
 		},
+		// More of editor's config.
         // ...
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 <info-box info>
@@ -249,7 +262,7 @@ ClassicEditor
 					label: 'White',
 					hasBorder: true
 				},
-
+				// More colors.
 				// ...
 			]
 		},
@@ -275,7 +288,7 @@ ClassicEditor
 					color: 'hsl(120, 75%, 60%)',
 					label: 'Green'
 				},
-
+				// More colors.
 				// ...
 			]
 		},
@@ -283,8 +296,8 @@ ClassicEditor
 			'heading', 'bulletedList', 'numberedList', 'fontColor', 'fontBackgroundColor', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ### Changing the geometry of the color grid
@@ -298,24 +311,26 @@ ClassicEditor
 	.create( document.querySelector( '#editor' ), {
 		fontColor: {
 			colors: [
-				// 9 colors defined here...
+				// 9 colors defined here.
+				// ...
 			]
 
 			columns: 3, // so, you can display them in 3 columns.
 
+			// Optional configuration of the number of document colors.
 			// ...
 		},
 		fontBackgroundColor: {
 			columns: 6,
-
+			// Background color options.
 			// ...
 		},
 		toolbar: [
 			'heading', 'bulletedList', 'numberedList', 'fontColor', 'fontBackgroundColor', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ### Documents colors
@@ -334,20 +349,22 @@ ClassicEditor
 			// And 12 document colors (2 rows of them).
 			documentColors: 12,
 
+			// Optional available font colors configuration.
 			// ...
 		},
 		fontBackgroundColor: {
 			// Remove the "Document colors" section.
 			documentColors: 0,
 
+			// Background color options.
 			// ...
 		},
 		toolbar: [
 			'heading', 'bulletedList', 'numberedList', 'fontColor', 'fontBackgroundColor', 'undo', 'redo'
 		]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 ## Installation
@@ -365,11 +382,11 @@ import Font from '@ckeditor/ckeditor5-font/src/font';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ Font, ... ],
-		toolbar: [ 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', ... ]
+		plugins: [ Font, /* ... */ ],
+		toolbar: [ 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', /* ... */ ]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 You can also add just one or a selected few of the font features to your plugin list and the toolbar configuration:
@@ -379,15 +396,15 @@ import FontFamily from '@ckeditor/ckeditor5-font/src/fontfamily';
 
 ClassicEditor
 	.create( document.querySelector( '#editor' ), {
-		plugins: [ FontFamily, ... ],
-		toolbar: [ 'fontFamily', ... ]
+		plugins: [ FontFamily, /* ... */ ],
+		toolbar: [ 'fontFamily', /* ... */ ]
 	} )
-	.then( ... )
-	.catch( ... );
+	.then( /* ... */ )
+	.catch( /* ... */ );
 ```
 
 <info-box info>
-	Read more about {@link builds/guides/integration/installing-plugins installing plugins}.
+	Read more about {@link installation/getting-started/installing-plugins installing plugins}.
 </info-box>
 
 ## Common API
@@ -510,4 +527,4 @@ Text formatted with `<font>` is accepted by the plugin, but the editor always re
 
 ## Contribute
 
-The source code of the feature is available on GitHub in https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-font.
+The source code of the feature is available on GitHub in [https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-font](https://github.com/ckeditor/ckeditor5/tree/master/packages/ckeditor5-font).

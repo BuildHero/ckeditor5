@@ -1,7 +1,8 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
+
 /* globals console, window, document */
 
 import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
@@ -194,8 +195,6 @@ class PlaceholderEditing extends Plugin {
 
 			const placeholderView = viewWriter.createContainerElement( 'span', {
 				class: 'placeholder'
-			}, {
-				isAllowedInsideAttributeElement: true
 			} );
 
 			// Insert the placeholder name (as a text).
@@ -213,6 +212,11 @@ ClassicEditor
 		toolbar: [ 'heading', '|', 'bold', 'italic', 'numberedList', 'bulletedList', '|', 'placeholder' ],
 		placeholderConfig: {
 			types: [ 'date', 'color', 'first name', 'surname' ]
+		},
+		ui: {
+			viewportOffset: {
+				top: window.getViewportTopOffsetConfig()
+			}
 		}
 	} )
 	.then( editor => {
@@ -220,6 +224,17 @@ ClassicEditor
 
 		// Expose for playing in the console.
 		window.editor = editor;
+
+		window.attachTourBalloon( {
+			target: window.findToolbarItem( editor.ui.view.toolbar,
+				item => item.buttonView && item.buttonView.label && item.buttonView.label.startsWith( 'Placeholder' )
+			),
+			text: 'Click to add a placeholder.',
+			tippyOptions: {
+				placement: 'bottom-start'
+			},
+			editor
+		} );
 	} )
 	.catch( error => {
 		console.error( error.stack );

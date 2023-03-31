@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -8,9 +8,9 @@
  */
 
 import { Plugin } from 'ckeditor5/src/core';
-import { TextWatcher, getLastTextLine } from 'ckeditor5/src/typing';
+import { Delete, TextWatcher, getLastTextLine } from 'ckeditor5/src/typing';
 
-import { addLinkProtocolIfApplicable } from './utils';
+import { addLinkProtocolIfApplicable, linkHasProtocol } from './utils';
 
 const MIN_LINK_LENGTH_WITH_SPACE_AT_END = 4; // Ie: "t.co " (length 5).
 
@@ -72,6 +72,13 @@ export default class AutoLink extends Plugin {
 	/**
 	 * @inheritDoc
 	 */
+	static get requires() {
+		return [ Delete ];
+	}
+
+	/**
+	 * @inheritDoc
+	 */
 	static get pluginName() {
 		return 'AutoLink';
 	}
@@ -121,12 +128,10 @@ export default class AutoLink extends Plugin {
 			}
 		} );
 
-		const input = editor.plugins.get( 'Input' );
-
 		watcher.on( 'matched:data', ( evt, data ) => {
 			const { batch, range, url } = data;
 
-			if ( !input.isInput( batch ) ) {
+			if ( !batch.isTyping ) {
 				return;
 			}
 
@@ -218,24 +223,43 @@ export default class AutoLink extends Plugin {
 	}
 
 	/**
-	 * Applies a link on a given range.
+	 * Applies a link on a given range if the link should be applied.
 	 *
 	 * @param {String} url The URL to link.
 	 * @param {module:engine/model/range~Range} range The text range to apply the link attribute to.
 	 * @private
 	 */
-	_applyAutoLink( link, range ) {
+	_applyAutoLink( url, range ) {
 		const model = this.editor.model;
 
-		if ( !this.isEnabled || !isLinkAllowedOnRange( range, model ) ) {
+		const defaultProtocol = this.editor.config.get( 'link.defaultProtocol' );
+		const fullUrl = addLinkProtocolIfApplicable( url, defaultProtocol );
+
+		if ( !this.isEnabled || !isLinkAllowedOnRange( range, model ) || !linkHasProtocol( fullUrl ) || linkIsAlreadySet( range ) ) {
 			return;
 		}
 
+		this._persistAutoLink( fullUrl, range );
+	}
+
+	/**
+	 * Enqueues autolink changes in the model.
+	 *
+	 * @param {String} url The URL to link.
+	 * @param {module:engine/model/range~Range} range The text range to apply the link attribute to.
+	 * @protected
+	 */
+	_persistAutoLink( url, range ) {
+		const model = this.editor.model;
+		const deletePlugin = this.editor.plugins.get( 'Delete' );
+
 		// Enqueue change to make undo step.
 		model.enqueueChange( writer => {
-			const defaultProtocol = this.editor.config.get( 'link.defaultProtocol' );
-			const parsedUrl = addLinkProtocolIfApplicable( link, defaultProtocol );
-			writer.setAttribute( 'linkHref', parsedUrl, range );
+			writer.setAttribute( 'linkHref', url, range );
+
+			model.enqueueChange( () => {
+				deletePlugin.requestUndoOnBackspace();
+			} );
 		} );
 	}
 }
@@ -253,4 +277,9 @@ function getUrlAtTextEnd( text ) {
 
 function isLinkAllowedOnRange( range, model ) {
 	return model.schema.checkAttributeInSelection( model.createSelection( range ), 'linkHref' );
+}
+
+function linkIsAlreadySet( range ) {
+	const item = range.start.nodeAfter;
+	return item && item.hasAttribute( 'linkHref' );
 }

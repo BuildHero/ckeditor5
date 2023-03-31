@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -154,6 +154,13 @@ export default class SourceEditing extends Plugin {
 
 			this.listenTo( editor, 'change:isReadOnly', ( evt, name, isReadOnly ) => this._handleReadOnlyMode( isReadOnly ) );
 		}
+
+		// Update the editor data while calling editor.getData() in the source editing mode.
+		editor.data.on( 'get', () => {
+			if ( this.isSourceEditingMode ) {
+				this._updateEditorData();
+			}
+		}, { priority: 'high' } );
 	}
 
 	/**
@@ -218,7 +225,10 @@ export default class SourceEditing extends Plugin {
 		for ( const [ rootName, domRootElement ] of editingView.domRoots ) {
 			const data = formatSource( editor.data.get( { rootName } ) );
 
-			const domSourceEditingElementTextarea = createElement( domRootElement.ownerDocument, 'textarea', { rows: '1' } );
+			const domSourceEditingElementTextarea = createElement( domRootElement.ownerDocument, 'textarea', {
+				rows: '1',
+				'aria-label': 'Source code editing area'
+			} );
 
 			const domSourceEditingElementWrapper = createElement( domRootElement.ownerDocument, 'div', {
 				class: 'ck-source-editing-area',
@@ -242,6 +252,9 @@ export default class SourceEditing extends Plugin {
 				writer.addClass( 'ck-hidden', viewRoot );
 			} );
 
+			// Register the element so it becomes available for Alt+F10 and Esc navigation.
+			editor.ui.setEditableElement( 'sourceEditing:' + rootName, domSourceEditingElementTextarea );
+
 			this._replacedRoots.set( rootName, domSourceEditingElementWrapper );
 
 			this._elementReplacer.replace( domRootElement, domSourceEditingElementWrapper );
@@ -261,6 +274,29 @@ export default class SourceEditing extends Plugin {
 		const editor = this.editor;
 		const editingView = editor.editing.view;
 
+		this._updateEditorData();
+
+		editingView.change( writer => {
+			for ( const [ rootName ] of this._replacedRoots ) {
+				writer.removeClass( 'ck-hidden', editingView.document.getRoot( rootName ) );
+			}
+		} );
+
+		this._elementReplacer.restore();
+
+		this._replacedRoots.clear();
+		this._dataFromRoots.clear();
+
+		editingView.focus();
+	}
+
+	/**
+	 * Updates the source data in all hidden editing roots.
+	 *
+	 * @private
+	 */
+	_updateEditorData() {
+		const editor = this.editor;
 		const data = {};
 
 		for ( const [ rootName, domSourceEditingElementWrapper ] of this._replacedRoots ) {
@@ -272,25 +308,11 @@ export default class SourceEditing extends Plugin {
 			if ( oldData !== newData ) {
 				data[ rootName ] = newData;
 			}
-
-			editingView.change( writer => {
-				const viewRoot = editingView.document.getRoot( rootName );
-
-				writer.removeClass( 'ck-hidden', viewRoot );
-			} );
 		}
-
-		this._elementReplacer.restore();
-
-		this._replacedRoots.clear();
-
-		this._dataFromRoots.clear();
 
 		if ( Object.keys( data ).length ) {
-			editor.data.set( data, { batchType: 'default' } );
+			editor.data.set( data, { batchType: { isUndoable: true } } );
 		}
-
-		editor.editing.view.focus();
 	}
 
 	/**
@@ -299,9 +321,15 @@ export default class SourceEditing extends Plugin {
 	 * @private
 	 */
 	_focusSourceEditing() {
+		const editor = this.editor;
 		const [ domSourceEditingElementWrapper ] = this._replacedRoots.values();
-
 		const textarea = domSourceEditingElementWrapper.querySelector( 'textarea' );
+
+		// The FocusObserver was disabled by View.render() while the DOM root was getting hidden and the replacer
+		// revealed the textarea. So it couldn't notice that the DOM root got blurred in the process.
+		// Let's sync this state manually here because otherwise Renderer will attempt to render selection
+		// in an invisible DOM root.
+		editor.editing.view.document.isFocused = false;
 
 		textarea.focus();
 	}

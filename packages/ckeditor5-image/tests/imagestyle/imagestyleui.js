@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -18,6 +18,7 @@ import ImageInlineEditing from '../../src/image/imageinlineediting';
 import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
 import DropdownView from '@ckeditor/ckeditor5-ui/src/dropdown/dropdownview';
 import { SplitButtonView } from '../../../../src/ui';
+import { setData } from '@ckeditor/ckeditor5-engine/src/dev-utils/model';
 
 describe( 'ImageStyleUI', () => {
 	let editor, editorElement, factory, defaultDropdowns;
@@ -233,20 +234,38 @@ describe( 'ImageStyleUI', () => {
 			dropdowns = [ ...defaultDropdowns, ...customDropdowns ].map( dropdown => {
 				const view = factory.create( dropdown.name );
 
+				view.render();
+				global.document.body.appendChild( view.element );
+
+				// Make sure that toolbar view is not created before first dropdown open.
+				expect( view.toolbarView ).to.be.undefined;
+
+				// Trigger toolbar view creation (lazy init).
+				view.isOpen = true;
+				view.isOpen = false;
+
 				return { view, buttonView: view.buttonView, config: dropdown };
 			} );
+		} );
+
+		afterEach( () => {
+			dropdowns.forEach( ( { view } ) => view.element.remove() );
 		} );
 
 		it( 'should define the drop-down properties and children properly', () => {
 			for ( const { config, view, buttonView } of dropdowns ) {
 				const defaultItem = allStyles.find( style => style.name === config.defaultItem.replace( 'imageStyle:', '' ) );
+				const expectedLabel = ( config.title ? `${ config.title }: ` : '' ) + defaultItem.title;
 
 				expect( view ).to.be.instanceOf( DropdownView );
 				expect( buttonView ).to.be.instanceOf( SplitButtonView );
 
-				expect( buttonView.label ).to.equal( ( config.title ? `${ config.title }: ` : '' ) + defaultItem.title );
+				expect( buttonView.label ).to.equal( expectedLabel );
 				expect( buttonView.tooltip ).to.be.true;
 				expect( buttonView.class ).to.be.null;
+
+				expect( buttonView.arrowView.label ).to.equal( config.title );
+				expect( buttonView.arrowView.tooltip ).to.be.true;
 
 				expect( view.toolbarView.items ).to.have.lengthOf( config.items.length );
 
@@ -254,6 +273,34 @@ describe( 'ImageStyleUI', () => {
 					expect( item ).to.be.instanceOf( ButtonView );
 				} );
 			}
+		} );
+
+		it( 'should focus the first active button when dropdown is opened', () => {
+			for ( const { view } of dropdowns ) {
+				const secondButton = view.toolbarView.items.get( 1 );
+				const spy = sinon.spy( secondButton, 'focus' );
+
+				secondButton.isOn = true;
+				view.isOpen = true;
+				sinon.assert.calledOnce( spy );
+			}
+		} );
+
+		it( 'should keep the same label of the secondary (arrow) button when the user changes styles of the image', () => {
+			const dropdownView = editor.ui.componentFactory.create( 'imageStyle:breakText' );
+
+			// Make sure that toolbar view is not created before first dropdown open.
+			expect( dropdownView.toolbarView ).to.be.undefined;
+
+			// Trigger toolbar view creation (lazy init).
+			dropdownView.isOpen = true;
+
+			expect( dropdownView.buttonView.arrowView.label ).to.equal( 'Default title' );
+
+			// Simulate the user changing the style of an image.
+			dropdownView.toolbarView.items.get( 0 ).isOn = true;
+
+			expect( dropdownView.buttonView.arrowView.label ).to.equal( 'Default title' );
 		} );
 
 		it( 'should translate the drop-down title if taken from default styles', async () => {
@@ -321,6 +368,15 @@ describe( 'ImageStyleUI', () => {
 				}
 			} );
 
+			const toolbar = customEditor.plugins.get( 'WidgetToolbarRepository' )._toolbarDefinitions.get( 'image' ).view;
+
+			// Make sure that toolbar is empty before first show.
+			expect( toolbar.items.length ).to.equal( 0 );
+
+			customEditor.ui.focusTracker.isFocused = true;
+
+			setData( customEditor.model, '[<imageBlock src=""></imageBlock>]' );
+
 			sinon.assert.calledOnce( console.warn );
 			sinon.assert.calledWithExactly( console.warn,
 				sinon.match( /^image-style-configuration-definition-invalid/ ),
@@ -354,6 +410,15 @@ describe( 'ImageStyleUI', () => {
 					toolbar: [ dropdown ]
 				}
 			} );
+
+			const toolbar = customEditor.plugins.get( 'WidgetToolbarRepository' )._toolbarDefinitions.get( 'image' ).view;
+
+			// Make sure that toolbar is empty before first show.
+			expect( toolbar.items.length ).to.equal( 0 );
+
+			customEditor.ui.focusTracker.isFocused = true;
+
+			setData( customEditor.model, '[<imageBlock src=""></imageBlock>]' );
 
 			sinon.assert.calledTwice( console.warn );
 			sinon.assert.calledWithExactly( console.warn,

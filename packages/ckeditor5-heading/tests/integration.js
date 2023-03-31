@@ -1,11 +1,11 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
 /* global document */
 
-import Heading from '../src/heading.js';
+import Heading from '../src/heading';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 
 import Enter from '@ckeditor/ckeditor5-enter/src/enter';
@@ -93,7 +93,7 @@ describe( 'Heading integration', () => {
 	describe( 'with the undo feature', () => {
 		it( 'does not create undo steps when applied to an existing heading (collapsed selection)', () => {
 			// Ensure no undo step by using a transparent batch.
-			model.enqueueChange( 'transparent', () => {
+			model.enqueueChange( { isUndoable: false }, () => {
 				setModelData( model, '<heading1>foo[]bar</heading1>' );
 			} );
 
@@ -105,7 +105,7 @@ describe( 'Heading integration', () => {
 
 		it( 'does not create undo steps when applied to an existing heading (non–collapsed selection)', () => {
 			// Ensure no undo step by using a transparent batch.
-			model.enqueueChange( 'transparent', () => {
+			model.enqueueChange( { isUndoable: false }, () => {
 				setModelData( model, '<heading1>[foo</heading1><heading1>bar]</heading1>' );
 			} );
 

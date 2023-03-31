@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -142,11 +142,11 @@ describe( 'ImageEditing', () => {
 			it( 'should convert', () => {
 				setModelData( model, '<imageBlock src="/assets/sample.png" alt="alt text"></imageBlock>' );
 
-				expect( editor.getData() ).to.equal( '<figure class="image"><img alt="alt text" src="/assets/sample.png"></figure>' );
+				expect( editor.getData() ).to.equal( '<figure class="image"><img src="/assets/sample.png" alt="alt text"></figure>' );
 
 				setModelData( model, '<paragraph><imageInline src="/assets/sample.png" alt="alt text"></imageInline></paragraph>' );
 
-				expect( editor.getData() ).to.equal( '<p><img alt="alt text" src="/assets/sample.png"></p>' );
+				expect( editor.getData() ).to.equal( '<p><img src="/assets/sample.png" alt="alt text"></p>' );
 			} );
 
 			it( 'should convert without alt attribute', () => {
@@ -241,7 +241,7 @@ describe( 'ImageEditing', () => {
 
 				expect( editor.getData() ).to.equal(
 					'<figure class="image">' +
-						'<img alt="alt text" src="/assets/sample.png">' +
+						'<img src="/assets/sample.png" alt="alt text">' +
 					'</figure>'
 				);
 
@@ -259,7 +259,7 @@ describe( 'ImageEditing', () => {
 					'</imageInline></paragraph>'
 				);
 
-				expect( editor.getData() ).to.equal( '<p><img alt="alt text" src="/assets/sample.png"></p>' );
+				expect( editor.getData() ).to.equal( '<p><img src="/assets/sample.png" alt="alt text"></p>' );
 			} );
 
 			it( 'should not convert srcset attribute if has wrong data', () => {
@@ -277,7 +277,7 @@ describe( 'ImageEditing', () => {
 
 				expect( editor.getData() ).to.equal(
 					'<figure class="image">' +
-						'<img alt="alt text" src="/assets/sample.png">' +
+						'<img src="/assets/sample.png" alt="alt text">' +
 					'</figure>'
 				);
 
@@ -293,7 +293,7 @@ describe( 'ImageEditing', () => {
 					writer.removeAttribute( 'srcset', imageInline );
 				} );
 
-				expect( editor.getData() ).to.equal( '<p><img alt="alt text" src="/assets/sample.png"></p>' );
+				expect( editor.getData() ).to.equal( '<p><img src="/assets/sample.png" alt="alt text"></p>' );
 			} );
 		} );
 
@@ -310,6 +310,13 @@ describe( 'ImageEditing', () => {
 
 				expect( getModelData( model, { withoutSelection: true } ) )
 					.to.equal( '<paragraph><imageInline alt="alt text" src="/assets/sample.png"></imageInline></paragraph>' );
+			} );
+
+			it( 'should convert image with `display:block` style', () => {
+				editor.setData( '<p><img src="/asserts/sample.png" alt="alt text" style="display:block" /></p>' );
+
+				expect( getModelData( model, { withoutSelection: true } ) )
+					.to.equal( '<imageBlock alt="alt text" src="/asserts/sample.png"></imageBlock>' );
 			} );
 
 			it( 'should not convert if there is no image class in figure', () => {
@@ -345,16 +352,16 @@ describe( 'ImageEditing', () => {
 					.to.equal( '<paragraph><imageInline src="/assets/sample.png"></imageInline></paragraph>' );
 			} );
 
-			it( 'should not convert without src attribute', () => {
+			it( 'should convert without src attribute', () => {
 				editor.setData( '<figure class="image"><img alt="alt text" /></figure>' );
 
 				expect( getModelData( model, { withoutSelection: true } ) )
-					.to.equal( '<paragraph></paragraph>' );
+					.to.equal( '<imageBlock alt="alt text"></imageBlock>' );
 
 				editor.setData( '<p><img alt="alt text" /></p>' );
 
 				expect( getModelData( model, { withoutSelection: true } ) )
-					.to.equal( '<paragraph></paragraph>' );
+					.to.equal( '<paragraph><imageInline alt="alt text"></imageInline></paragraph>' );
 			} );
 
 			it( 'should not convert in wrong context', () => {
@@ -703,10 +710,12 @@ describe( 'ImageEditing', () => {
 					);
 				} );
 
-				it( 'should not convert and autohoist image element without src attribute (which is not allowed by schema)', () => {
+				it( 'should convert and autohoist image element without src attribute', () => {
 					editor.setData( '<div>foo<img alt="foo" />bar</div>' );
 
-					expect( getModelData( model, { withoutSelection: true } ) ).to.equal( '<div>foobar</div>' );
+					expect( getModelData( model, { withoutSelection: true } ) ).to.equal(
+						'<div>foo<imageInline alt="foo"></imageInline>bar</div>'
+					);
 				} );
 			} );
 		} );

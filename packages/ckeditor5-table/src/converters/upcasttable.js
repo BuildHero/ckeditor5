@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -29,13 +29,16 @@ export function upcastTableFigure() {
 				return;
 			}
 
-			// Find an table element inside the figure element.
+			// Find a table element inside the figure element.
 			const viewTable = getViewTableFromFigure( data.viewItem );
 
 			// Do not convert if table element is absent or was already converted.
 			if ( !viewTable || !conversionApi.consumable.test( viewTable, { name: true } ) ) {
 				return;
 			}
+
+			// Consume the figure to prevent other converters from processing it again.
+			conversionApi.consumable.consume( data.viewItem, { name: true, classes: 'table' } );
 
 			// Convert view table to model table.
 			const conversionResult = conversionApi.convertItem( viewTable, data.modelCursor );
@@ -45,6 +48,9 @@ export function upcastTableFigure() {
 
 			// When table wasn't successfully converted then finish conversion.
 			if ( !modelTable ) {
+				// Revert consumed figure so other features can convert it.
+				conversionApi.consumable.revert( data.viewItem, { name: true, classes: 'table' } );
+
 				return;
 			}
 
@@ -140,18 +146,33 @@ export function skipEmptyTableRow() {
  */
 export function ensureParagraphInTableCell( elementName ) {
 	return dispatcher => {
-		dispatcher.on( `element:${ elementName }`, ( evt, data, conversionApi ) => {
+		dispatcher.on( `element:${ elementName }`, ( evt, data, { writer } ) => {
 			// The default converter will create a model range on converted table cell.
 			if ( !data.modelRange ) {
 				return;
 			}
 
+			const tableCell = data.modelRange.start.nodeAfter;
+			const modelCursor = writer.createPositionAt( tableCell, 0 );
+
 			// Ensure a paragraph in the model for empty table cells for converted table cells.
 			if ( data.viewItem.isEmpty ) {
-				const tableCell = data.modelRange.start.nodeAfter;
-				const modelCursor = conversionApi.writer.createPositionAt( tableCell, 0 );
+				writer.insertElement( 'paragraph', modelCursor );
 
-				conversionApi.writer.insertElement( 'paragraph', modelCursor );
+				return;
+			}
+
+			const childNodes = Array.from( tableCell.getChildren() );
+
+			// In case there are only markers inside the table cell then move them to the paragraph.
+			if ( childNodes.every( node => node.is( 'element', '$marker' ) ) ) {
+				const paragraph = writer.createElement( 'paragraph' );
+
+				writer.insert( paragraph, writer.createPositionAt( tableCell, 0 ) );
+
+				for ( const node of childNodes ) {
+					writer.move( writer.createRangeOn( node ), writer.createPositionAt( paragraph, 'end' ) );
+				}
 			}
 		}, { priority: 'low' } );
 	};

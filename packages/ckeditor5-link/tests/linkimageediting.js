@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -84,7 +84,7 @@ describe( 'LinkImageEditing', () => {
 				setModelData( model, '<imageBlock src="/assets/sample.png" alt="alt text" linkHref="http://ckeditor.com"></imageBlock>' );
 
 				expect( editor.getData() ).to.equal(
-					'<figure class="image"><a href="http://ckeditor.com"><img alt="alt text" src="/assets/sample.png"></a></figure>'
+					'<figure class="image"><a href="http://ckeditor.com"><img src="/assets/sample.png" alt="alt text"></a></figure>'
 				);
 			} );
 
@@ -125,7 +125,7 @@ describe( 'LinkImageEditing', () => {
 				setModelData( model, '<imageBlock src="/assets/sample.png" alt="alt text" linkHref="http://ckeditor.com"></imageBlock>' );
 
 				expect( editor.getData() ).to.equal(
-					'<figure class="image"><img alt="alt text" src="/assets/sample.png"></figure>'
+					'<figure class="image"><img src="/assets/sample.png" alt="alt text"></figure>'
 				);
 				expect( spy.calledOnce ).to.be.true;
 			} );
@@ -145,7 +145,7 @@ describe( 'LinkImageEditing', () => {
 				);
 
 				expect( editor.getData() ).to.equal(
-					'<p>foo <a href="http://ckeditor.com"><img alt="alt text" src="/assets/sample.png"></a>bar</p>'
+					'<p>foo <a href="http://ckeditor.com"><img src="/assets/sample.png" alt="alt text"></a>bar</p>'
 				);
 
 				return editor.destroy();
@@ -159,8 +159,8 @@ describe( 'LinkImageEditing', () => {
 
 				setModelData( model,
 					'<imageBlock src="/assets/sample.png" ' +
-						'linkHref="http://ckeditor.com" ' +
-						'sources=\'[ { "srcset": "small.png" } ]\'>' +
+						'sources=\'[ { "srcset": "small.png" } ]\' ' +
+						'linkHref="http://ckeditor.com">' +
 					'</imageBlock>'
 				);
 
@@ -201,7 +201,7 @@ describe( 'LinkImageEditing', () => {
 					'<p>' +
 						'foo' +
 						'<a href="http://ckeditor.com">' +
-							'<picture><source srcset="small.png"><img alt="alt text" src="/assets/sample.png"></picture>' +
+							'<picture><source srcset="small.png"><img src="/assets/sample.png" alt="alt text"></picture>' +
 						'</a>' +
 						'bar' +
 					'</p>'
@@ -229,11 +229,11 @@ describe( 'LinkImageEditing', () => {
 						.to.equal( '<imageBlock linkHref="http://ckeditor.com" src="/assets/sample.png"></imageBlock>' );
 				} );
 
-				it( 'should not convert without src attribute', () => {
+				it( 'should convert without src attribute', () => {
 					editor.setData( '<figure class="image"><a href="http://ckeditor.com"><img alt="alt text" /></a></figure>' );
 
 					expect( getModelData( model, { withoutSelection: true } ) )
-						.to.equal( '<paragraph></paragraph>' );
+						.to.equal( '<imageBlock alt="alt text" linkHref="http://ckeditor.com"></imageBlock>' );
 				} );
 
 				it( 'should not convert in wrong context', () => {
@@ -307,11 +307,11 @@ describe( 'LinkImageEditing', () => {
 						.to.equal( '<imageBlock linkHref="http://ckeditor.com" src="/assets/sample.png"></imageBlock>' );
 				} );
 
-				it( 'should not convert an image surrounded by a link without src attribute', () => {
+				it( 'should convert an image surrounded by a link without src attribute', () => {
 					editor.setData( '<a href="http://ckeditor.com"><img alt="alt text" /></a>' );
 
 					expect( getModelData( model, { withoutSelection: true } ) )
-						.to.equal( '<paragraph></paragraph>' );
+						.to.equal( '<imageBlock alt="alt text" linkHref="http://ckeditor.com"></imageBlock>' );
 				} );
 
 				it( 'should not convert in wrong context', () => {
@@ -518,8 +518,9 @@ describe( 'LinkImageEditing', () => {
 								'<a href="http://ckeditor.com">' +
 									'<img alt="alt text" src="/assets/sample.png"></img>' +
 								'</a>' +
-								'<figcaption class="ck-editor__editable ck-editor__nested-editable" ' +
-									'contenteditable="true" data-placeholder="Enter image caption">' +
+								'<figcaption aria-label="Caption for image: alt text" ' +
+									'class="ck-editor__editable ck-editor__nested-editable" ' +
+									'contenteditable="true" data-placeholder="Enter image caption" role="textbox">' +
 										'Foo Bar.' +
 								'</figcaption>' +
 							'</figure>'
@@ -976,6 +977,44 @@ describe( 'LinkImageEditing', () => {
 					'</paragraph>'
 				);
 			} );
+
+			it( 'should properly upcast manual decorators for linked inline images', async () => {
+				const newEditor = await VirtualTestEditor.create( {
+					plugins: [ Paragraph, ImageBlockEditing, ImageInlineEditing, LinkImageEditing ],
+					link: {
+						decorators: {
+							isGallery: {
+								mode: 'manual',
+								classes: 'gallery'
+							}
+						}
+					}
+				} );
+
+				newEditor.setData(
+					'<p>' +
+						'foo ' +
+						'<a class="gallery" href="https://cksource.com">' +
+							'abc ' +
+							'<img src="sample.jpg" alt="bar">' +
+							' 123' +
+						'</a>' +
+						' bar' +
+					'</p>'
+				);
+
+				expect( getModelData( newEditor.model, { withoutSelection: true } ) ).to.equal(
+					'<paragraph>' +
+						'foo ' +
+						'<$text linkHref="https://cksource.com" linkIsGallery="true">abc </$text>' +
+						'<imageInline alt="bar" linkHref="https://cksource.com" linkIsGallery="true" src="sample.jpg"></imageInline>' +
+						'<$text linkHref="https://cksource.com" linkIsGallery="true"> 123</$text>' +
+						' bar' +
+					'</paragraph>'
+				);
+
+				await newEditor.destroy();
+			} );
 		} );
 
 		describe( 'downcast converter', () => {
@@ -1058,7 +1097,7 @@ describe( 'LinkImageEditing', () => {
 					'<figure class="image">' +
 						'<a class="gallery highlighted" style="text-decoration:underline;" href="https://cksource.com" ' +
 						'download="download" target="_blank" rel="noopener noreferrer">' +
-							'<img src="sample.jpg" alt="bar">' +
+							'<img alt="bar" src="sample.jpg">' +
 						'</a>' +
 					'</figure>' +
 					'<p>' +
@@ -1096,8 +1135,8 @@ describe( 'LinkImageEditing', () => {
 
 				expect( editor.getData() ).to.equal(
 					'<figure class="image">' +
-							'<img src="sample.jpg" alt="bar">' +
-						'</figure>'
+						'<img alt="bar" src="sample.jpg">' +
+					'</figure>'
 				);
 			} );
 

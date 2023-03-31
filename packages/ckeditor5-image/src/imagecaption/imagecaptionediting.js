@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -9,13 +9,12 @@
 
 import { Plugin } from 'ckeditor5/src/core';
 import { Element, enablePlaceholder } from 'ckeditor5/src/engine';
-import { setHighlightHandling, toWidgetEditable } from 'ckeditor5/src/widget';
-import { toArray } from 'ckeditor5/src/utils';
+import { toWidgetEditable } from 'ckeditor5/src/widget';
 
 import ToggleImageCaptionCommand from './toggleimagecaptioncommand';
 
 import ImageUtils from '../imageutils';
-import { getCaptionFromImageModelElement, matchImageCaptionViewElement } from './utils';
+import ImageCaptionUtils from './imagecaptionutils';
 
 /**
  * The image caption engine plugin. It is responsible for:
@@ -31,7 +30,7 @@ export default class ImageCaptionEditing extends Plugin {
 	 * @inheritDoc
 	 */
 	static get requires() {
-		return [ ImageUtils ];
+		return [ ImageUtils, ImageCaptionUtils ];
 	}
 
 	/**
@@ -82,6 +81,7 @@ export default class ImageCaptionEditing extends Plugin {
 
 		this._setupConversion();
 		this._setupImageTypeCommandsIntegration();
+		this._registerCaptionReconversion();
 	}
 
 	/**
@@ -94,11 +94,12 @@ export default class ImageCaptionEditing extends Plugin {
 		const editor = this.editor;
 		const view = editor.editing.view;
 		const imageUtils = editor.plugins.get( 'ImageUtils' );
+		const imageCaptionUtils = editor.plugins.get( 'ImageCaptionUtils' );
 		const t = editor.t;
 
 		// View -> model converter for the data pipeline.
 		editor.conversion.for( 'upcast' ).elementToElement( {
-			view: element => matchImageCaptionViewElement( imageUtils, element ),
+			view: element => imageCaptionUtils.matchImageCaptionViewElement( element ),
 			model: 'caption'
 		} );
 
@@ -132,21 +133,12 @@ export default class ImageCaptionEditing extends Plugin {
 					keepOnFocus: true
 				} );
 
-				const widgetEditable = toWidgetEditable( figcaptionElement, writer );
+				const imageAlt = modelElement.parent.getAttribute( 'alt' );
+				const label = imageAlt ? t( 'Caption for image: %0', [ imageAlt ] ) : t( 'Caption for the image' );
 
-				setHighlightHandling(
-					widgetEditable,
-					writer,
-					( element, descriptor, writer ) => writer.addClass( toArray( descriptor.classes ), element ),
-					( element, descriptor, writer ) => writer.removeClass( toArray( descriptor.classes ), element )
-				);
-
-				return widgetEditable;
+				return toWidgetEditable( figcaptionElement, writer, { label } );
 			}
 		} );
-
-		editor.editing.mapper.on( 'modelToViewPosition', mapModelPositionToView( view ) );
-		editor.data.mapper.on( 'modelToViewPosition', mapModelPositionToView( view ) );
 	}
 
 	/**
@@ -159,6 +151,7 @@ export default class ImageCaptionEditing extends Plugin {
 	_setupImageTypeCommandsIntegration() {
 		const editor = this.editor;
 		const imageUtils = editor.plugins.get( 'ImageUtils' );
+		const imageCaptionUtils = editor.plugins.get( 'ImageCaptionUtils' );
 		const imageTypeInlineCommand = editor.commands.get( 'imageTypeInline' );
 		const imageTypeBlockCommand = editor.commands.get( 'imageTypeBlock' );
 
@@ -176,7 +169,7 @@ export default class ImageCaptionEditing extends Plugin {
 			}
 
 			if ( imageUtils.isBlockImage( oldElement ) ) {
-				const oldCaptionElement = getCaptionFromImageModelElement( oldElement );
+				const oldCaptionElement = imageCaptionUtils.getCaptionFromImageModelElement( oldElement );
 
 				// If the old element was a captioned block image (the caption was visible),
 				// simply save it so it can be restored.
@@ -253,29 +246,39 @@ export default class ImageCaptionEditing extends Plugin {
 	_saveCaption( imageModelElement, caption ) {
 		this._savedCaptionsMap.set( imageModelElement, caption.toJSON() );
 	}
-}
 
-// Creates a mapper callback that reverses the order of `<img>` and `<figcaption>` in the image.
-// Without it, `<figcaption>` would precede the `<img>` in the conversion.
-//
-// <imageBlock>^</imageBlock> -> <figure><img>^<caption></caption></figure>
-//
-// @private
-// @param {module:engine/view/view~View} editingView
-// @returns {Function}
-function mapModelPositionToView( editingView ) {
-	return ( evt, data ) => {
-		const modelPosition = data.modelPosition;
-		const parent = modelPosition.parent;
+	/**
+	 * Reconverts image caption when image alt attribute changes.
+	 * The change of alt attribute is reflected in caption's aria-label attribute.
+	 *
+	 * @private
+	 */
+	_registerCaptionReconversion() {
+		const editor = this.editor;
+		const model = editor.model;
+		const imageUtils = editor.plugins.get( 'ImageUtils' );
+		const imageCaptionUtils = editor.plugins.get( 'ImageCaptionUtils' );
 
-		if ( !parent.is( 'element', 'imageBlock' ) ) {
-			return;
-		}
+		model.document.on( 'change:data', () => {
+			const changes = model.document.differ.getChanges();
 
-		const viewElement = data.mapper.toViewElement( parent );
+			for ( const change of changes ) {
+				if ( change.attributeKey !== 'alt' ) {
+					continue;
+				}
 
-		// The "img" element is inserted by ImageBlockEditing during the downcast conversion via
-		// an explicit view position so the "0" position does not need any mapping.
-		data.viewPosition = editingView.createPositionAt( viewElement, modelPosition.offset + 1 );
-	};
+				const image = change.range.start.nodeAfter;
+
+				if ( imageUtils.isBlockImage( image ) ) {
+					const caption = imageCaptionUtils.getCaptionFromImageModelElement( image );
+
+					if ( !caption ) {
+						return;
+					}
+
+					editor.editing.reconvertItem( caption );
+				}
+			}
+		} );
+	}
 }
