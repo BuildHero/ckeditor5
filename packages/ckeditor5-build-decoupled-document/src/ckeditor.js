@@ -220,10 +220,13 @@ class CustomImageUploadAdapter {
 			cloudinaryParams,
 			generateSignatureCallback
 		} = editor.config._config.simpleUpload;
-		const signature = await generateSignatureCallback();
 		// eslint-disable-next-line no-undef
 		const data = new FormData();
 		const fileExt = file.name.split( '.' ).pop() || '';
+		const signature = await generateSignatureCallback( {
+			...cloudinaryParams,
+			tags: `${ cloudinaryParams.tags }.${ fileExt }`
+		} );
 		// eslint-disable-next-line no-undef
 		// eslint-disable-next-line space-in-parens
 		// eslint-disable-next-line no-undef
