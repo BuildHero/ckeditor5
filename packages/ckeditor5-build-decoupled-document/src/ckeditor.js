@@ -224,15 +224,18 @@ class CustomImageUploadAdapter {
 		// eslint-disable-next-line no-undef
 		const data = new FormData();
 		const fileExt = file.name.split( '.' ).pop() || '';
-
+		// eslint-disable-next-line no-undef
+		// eslint-disable-next-line space-in-parens
+		// eslint-disable-next-line no-undef
+		console.log( { file, fileExt } );
 		data.append( 'eager', cloudinaryParams.eager );
 		data.append( 'public_id', cloudinaryParams.public_id );
 		data.append( 'folder', cloudinaryParams.folder );
 		data.append( 'timestamp', cloudinaryParams.timestamp );
+		data.append( 'api_key', api_key );
 		data.append( 'signature', signature.data.getCloudinarySignature );
 		data.append( 'tags', `${ cloudinaryParams.tags }.${ fileExt }` );
 		data.append( 'file', file );
-		data.append( 'api_key', api_key );
 
 		xhr.setRequestHeader( 'X-Requested-With', 'XMLHttpRequest' );
 
