@@ -218,15 +218,12 @@ class CustomImageUploadAdapter {
 			// eslint-disable-next-line camelcase
 			authorization: api_key,
 			cloudinaryParams,
-			generateSignatureCallback,
-			tenantId,
-			getFileExtension
+			generateSignatureCallback
 		} = editor.config._config.simpleUpload;
 		const signature = await generateSignatureCallback();
 		// eslint-disable-next-line no-undef
 		const data = new FormData();
-		const filename = `${ tenantId }/${ Date.now() }-${ file.name }`;
-		const fileExt = getFileExtension( filename );
+		const fileExt = file.name.split( '.' ).pop() || '';
 
 		data.append( 'eager', cloudinaryParams.eager );
 		data.append( 'public_id', cloudinaryParams.public_id );
