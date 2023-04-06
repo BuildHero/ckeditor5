@@ -237,7 +237,7 @@ class CustomImageUploadAdapter {
 		// eslint-disable-next-line no-undef
 		console.log( { file, fileExt } );
 		data.append( 'eager', cloudinaryParams.eager );
-		data.append( 'public_id', cloudinaryParams.public_id );
+		data.append( 'public_id', publicId );
 		data.append( 'folder', cloudinaryParams.folder );
 		data.append( 'timestamp', cloudinaryParams.timestamp );
 		data.append( 'api_key', api_key );
