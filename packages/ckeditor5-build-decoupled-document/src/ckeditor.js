@@ -229,7 +229,8 @@ class CustomImageUploadAdapter {
 		const tags = `${ tenantId }${ publicId }.${ fileExt }`;
 		const signature = await generateSignatureCallback( {
 			...cloudinaryParams,
-			tags
+			tags,
+			public_id: publicId
 		} );
 		// eslint-disable-next-line no-undef
 		// eslint-disable-next-line space-in-parens
