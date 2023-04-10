@@ -218,20 +218,31 @@ class CustomImageUploadAdapter {
 			// eslint-disable-next-line camelcase
 			authorization: api_key,
 			cloudinaryParams,
-			generateSignatureCallback
+			generateSignatureCallback,
+			getPublicId,
+			tenantId
 		} = editor.config._config.simpleUpload;
-		const signature = await generateSignatureCallback();
 		// eslint-disable-next-line no-undef
 		const data = new FormData();
-
+		const publicId = getPublicId();
+		const fileExt = file.name.split( '.' ).pop() || '';
+		const tags = `${ tenantId }${ publicId }.${ fileExt }`;
+		const signature = await generateSignatureCallback( {
+			...cloudinaryParams,
+			tags,
+			public_id: publicId
+		} );
+		// eslint-disable-next-line no-undef
+		// eslint-disable-next-line space-in-parens
+		// eslint-disable-next-line no-undef
 		data.append( 'eager', cloudinaryParams.eager );
-		data.append( 'public_id', cloudinaryParams.public_id );
+		data.append( 'public_id', publicId );
 		data.append( 'folder', cloudinaryParams.folder );
 		data.append( 'timestamp', cloudinaryParams.timestamp );
-		data.append( 'signature', signature.data.getCloudinarySignature );
-		data.append( 'tags', `${ cloudinaryParams.tags }` );
-		data.append( 'file', file );
 		data.append( 'api_key', api_key );
+		data.append( 'signature', signature.data.getCloudinarySignature );
+		data.append( 'tags', tags );
+		data.append( 'file', file );
 
 		xhr.setRequestHeader( 'X-Requested-With', 'XMLHttpRequest' );
 
