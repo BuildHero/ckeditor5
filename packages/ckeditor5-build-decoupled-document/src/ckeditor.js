@@ -41,6 +41,7 @@ import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice';
 import PictureEditing from '@ckeditor/ckeditor5-image/src/pictureediting';
 import Table from '@ckeditor/ckeditor5-table/src/table';
+import TableColumnResize from '@ckeditor/ckeditor5-table/src/tablecolumnresize';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TableProperties from '@ckeditor/ckeditor5-table/src/tableproperties';
 import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperties';
@@ -330,6 +331,7 @@ DecoupledEditor.builtinPlugins = [
 	PictureEditing,
 	Table,
 	TableCellProperties,
+	TableColumnResize,
 	TableProperties,
 	TableToolbar,
 	TextTransformation,
