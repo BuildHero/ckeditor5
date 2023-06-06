@@ -341,6 +341,59 @@ DecoupledEditor.builtinPlugins = [
 	CustomImageUploadAdapterPlugin
 ];
 
+const smartFields = {
+	ACCOUNT_MANAGER: 'AccountManager',
+	BILL_TO_ADDRESS: 'BillToAddress',
+	BILLING_CUSTOMER_ADDRESS: 'BillingCustomerAddress',
+	BILLING_CUSTOMER_BILL_TO: 'BillingCustomerBillTo',
+	BILLING_CUSTOMER_NAME: 'BillingCustomerName',
+	COMPANY_ADDRESS: 'CompanyAddress',
+	COMPANY_NAME: 'CompanyName',
+	COMPANY_LOGO: 'CompanyLogo',
+	COMPANY_PHONE: 'CompanyPhone',
+	CURRENT_DATE: 'CurrentDate',
+	CUSTOMER_ADDRESS: 'CustomerAddress',
+	CUSTOMER_NAME: 'CustomerName',
+	DAYS_UNTIL_EXPIRATION: 'DaysuntilExpiration',
+	DEPARTMENT_COMPANY_ADDRESS: 'Department/CompanyAddress',
+	DEPARTMENT_COMPANY_LOGO: 'Department/CompanyLogo',
+	DEPARTMENT_COMPANY_PHONE: 'Department/CompanyPhone',
+	DISCOUNT: 'Discount',
+	EXPIRATION_DATE: 'ExpirationDate',
+	ISSUE_DESCRIPTION: 'IssueDescription',
+	LABOR_SUBTOTAL: 'LaborSubtotal',
+	LABOR_TOTAL: 'LaborTotal',
+	LINE_ITEMS: 'LineItems',
+	MATERIAL_TOTAL: 'MaterialTotal',
+	PARTS_AND_MATERIALS: 'PartsandMaterialsSubtotal',
+	PROJECT_MANAGER: 'ProjectManager',
+	PROJECT_MANAGER_EMAIL: 'ProjectManagerEmail',
+	PROPERTY_NAME: 'PropertyName',
+	PROPERTY_ADDRESS: 'PropertyAddress',
+	PROPERTY_BILLING_CUSTOMER_ADDRESS: 'PropertyBillingCustomerAddress',
+	PROPERTY_BILLING_CUSTOMER_BILL_TO: 'PropertyBillingCustomerBillTo',
+	PROPERTY_BILLING_CUSTOMER_NAME: 'PropertyBillingCustomerName',
+	PROPERTY_REP: 'PropertyRep',
+	QUOTE_NUMBER: 'QuoteNumber',
+	QUOTE_SUBJECT: 'QuoteSubject',
+	QUOTE_CREATION_DATE: 'QuoteCreationDate',
+	QUOTE_ORDERED_BY: 'OrderedBy',
+	QUOTE_ORDERED_BY_EMAIL: 'OrderedByEmail',
+	QUOTE_ORDERED_BY_PHONE: 'OrderedByPhone',
+	QUOTE_SUBTOTAL: 'QuoteSubtotal',
+	REMOVE_ITEM: 'RemoveItem',
+	SOLD_BY: 'SoldBy',
+	SOLD_BY_EMAIL: 'SoldByEmail',
+	TASKS: 'Tasks',
+	TASK_GROUPS: 'TaskGroups',
+	TAX_AMOUNT: 'TaxAmount',
+	TAX_PERCENTAGE: 'TaxPercentage',
+	TAX_DISTRIBUTION: 'TaxDistribution',
+	TERMS_AND_CONDITIONS: 'TermsandConditions',
+	TOTAL: 'Total',
+	TOTALS_AND_SUBTOTALS: 'TotalsandSubtotals'
+};
+
 // Editor configuration.
 DecoupledEditor.defaultConfig = {
 	toolbar: {
@@ -393,6 +446,15 @@ DecoupledEditor.defaultConfig = {
 			'|',
 			'toggleImageCaption',
 			'imageTextAlternative'
+		]
+	},
+	mention: {
+		feeds: [
+			{
+				marker: '[[',
+				feed: Object.values( smartFields ).map( field => `[[${ field }]]` ),
+				minimumCharacters: 1
+			}
 		]
 	},
 	table: {
