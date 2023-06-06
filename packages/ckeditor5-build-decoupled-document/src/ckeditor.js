@@ -451,7 +451,7 @@ DecoupledEditor.defaultConfig = {
 	mention: {
 		feeds: [
 			{
-				marker: '[[',
+				marker: '@',
 				feed: Object.values( smartFields ).map( field => `[[${ field }]]` ),
 				minimumCharacters: 1
 			}
