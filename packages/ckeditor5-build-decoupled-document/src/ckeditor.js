@@ -452,7 +452,7 @@ DecoupledEditor.defaultConfig = {
 		feeds: [
 			{
 				marker: '@',
-				feed: Object.values( smartFields ),
+				feed: Object.values( smartFields ).map( field => `@${ field }` ),
 				minimumCharacters: 1
 			}
 		]
