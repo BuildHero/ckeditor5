@@ -35,6 +35,7 @@ import Link from '@ckeditor/ckeditor5-link/src/link';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import ListProperties from '@ckeditor/ckeditor5-list/src/listproperties';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
+import { Mention } from '@ckeditor/ckeditor5-mention';
 import Pagination from '@ckeditor/ckeditor5-pagination/src/pagination';
 import PageBreak from '@ckeditor/ckeditor5-page-break/src/pagebreak';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
@@ -324,6 +325,7 @@ DecoupledEditor.builtinPlugins = [
 	List,
 	ListProperties,
 	MediaEmbed,
+	Mention,
 	PageBreak,
 	Pagination,
 	Paragraph,
