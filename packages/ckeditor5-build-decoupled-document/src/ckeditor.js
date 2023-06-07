@@ -310,8 +310,9 @@ function MentionCustomization( editor ) {
 			const {
 				cbFn = () => {}
 			} = smartFieldsConfig;
-
-			writer.removeSelectionAttribute( 'data-mention' );
+			// eslint-disable-next-line no-undef
+			console.log( { writer } );
+			// writer.removeSelectionAttribute( 'data-mention' );
 
 			const formattedText = `[[${ modelAttributeValue.id.replace(
 				/#/g,
