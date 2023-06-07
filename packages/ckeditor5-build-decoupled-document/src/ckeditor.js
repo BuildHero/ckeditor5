@@ -261,18 +261,7 @@ function CustomImageUploadAdapterPlugin( editor ) {
 function MentionCustomization( editor ) {
 	// eslint-disable-next-line no-undef
 	console.log( { editor } );
-	// const smartFieldsConfig = editor.config._config.smartFields;
-	// const {
-	// 	cbFn = () => {}
-	// } = smartFieldsConfig;
 
-	// const formattedText = `[[${ modelAttributeValue.id.replace(
-	// 	/#/g,
-	// 	''
-	// ) }]]`;
-	// editor.model.change( () => {
-	// 	cbFn( editor, formattedText );
-	// } );
 	editor.conversion.for( 'upcast' ).elementToAttribute( {
 		view: {
 			name: 'span',
@@ -306,34 +295,34 @@ function MentionCustomization( editor ) {
 				return;
 			}
 
-			const smartFieldsConfig = editor.config._config.smartFields;
-			const {
-				cbFn = () => {}
-			} = smartFieldsConfig;
-			// eslint-disable-next-line no-undef
-			console.log( { writer } );
-			// writer.removeAttribute( 'mention' );
+			// const smartFieldsConfig = editor.config._config.smartFields;
+			// const {
+			// 	cbFn = () => {}
+			// } = smartFieldsConfig;
+			// // eslint-disable-next-line no-undef
+			// console.log( { writer } );
+			// // writer.removeAttribute( 'mention' );
 
-			const formattedText = `[[${ modelAttributeValue.id.replace(
-				/#/g,
-				''
-			) }]]`;
-			editor.model.change( () => {
-				cbFn( editor, formattedText );
-			} );
-			// return writer.createAttributeElement(
-			// 	'span',
-			// 	{
-			// 		class: 'mention',
-			// 		'data-mention': `[[${ modelAttributeValue.id }]]`
-			// 	},
-			// 	{
-			// 		// Make mention attribute to be wrapped by other attribute elements.
-			// 		priority: 20,
-			// 		// Prevent merging mentions together.
-			// 		id: modelAttributeValue.uid
-			// 	}
-			// );
+			// const formattedText = `[[${ modelAttributeValue.id.replace(
+			// 	/#/g,
+			// 	''
+			// ) }]]`;
+			// editor.model.change( () => {
+			// 	cbFn( editor, formattedText );
+			// } );
+			return writer.createAttributeElement(
+				'span',
+				{
+					class: 'mention',
+					'data-mention': `[[${ modelAttributeValue.id.replace( '#', '' ) }]]`
+				},
+				{
+					// Make mention attribute to be wrapped by other attribute elements.
+					priority: 20,
+					// Prevent merging mentions together.
+					id: modelAttributeValue.uid
+				}
+			);
 		},
 		converterPriority: 'high'
 	} );
