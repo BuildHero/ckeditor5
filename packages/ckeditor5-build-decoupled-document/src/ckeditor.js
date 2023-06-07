@@ -259,6 +259,20 @@ function CustomImageUploadAdapterPlugin( editor ) {
 }
 
 function MentionCustomization( editor ) {
+	// eslint-disable-next-line no-undef
+	console.log( { editor } );
+	// const smartFieldsConfig = editor.config._config.smartFields;
+	// const {
+	// 	cbFn = () => {}
+	// } = smartFieldsConfig;
+
+	// const formattedText = `[[${ modelAttributeValue.id.replace(
+	// 	/#/g,
+	// 	''
+	// ) }]]`;
+	// editor.model.change( () => {
+	// 	cbFn( editor, formattedText );
+	// } );
 	// editor.conversion.for( 'upcast' ).elementToAttribute( {
 	// 	view: {
 	// 		name: 'span',
@@ -284,42 +298,42 @@ function MentionCustomization( editor ) {
 	// } );
 
 	// Downcast the model 'mention' text attribute to a view <a> element.
-	editor.conversion.for( 'downcast' ).attributeToElement( {
-		model: 'mention',
-		view: modelAttributeValue => {
-		// Do not convert empty attributes (lack of value means no mention).
-			if ( !modelAttributeValue ) {
-				return;
-			}
+	// editor.conversion.for( 'downcast' ).attributeToElement( {
+	// 	model: 'mention',
+	// 	view: modelAttributeValue => {
+	// 	// Do not convert empty attributes (lack of value means no mention).
+	// 		if ( !modelAttributeValue ) {
+	// 			return;
+	// 		}
 
-			const smartFieldsConfig = editor.config._config.smartFields;
-			const {
-				cbFn = () => {}
-			} = smartFieldsConfig;
+	// 		const smartFieldsConfig = editor.config._config.smartFields;
+	// 		const {
+	// 			cbFn = () => {}
+	// 		} = smartFieldsConfig;
 
-			const formattedText = `[[${ modelAttributeValue.id.replace(
-				/#/g,
-				''
-			) }]]`;
-			editor.model.change( () => {
-				cbFn( editor, formattedText );
-			} );
-			// return writer.createAttributeElement(
-			// 	'span',
-			// 	{
-			// 		class: 'mention',
-			// 		'data-mention': `[[${ modelAttributeValue.id }]]`
-			// 	},
-			// 	{
-			// 		// Make mention attribute to be wrapped by other attribute elements.
-			// 		priority: 20,
-			// 		// Prevent merging mentions together.
-			// 		id: modelAttributeValue.uid
-			// 	}
-			// );
-		},
-		converterPriority: 'high'
-	} );
+	// 		const formattedText = `[[${ modelAttributeValue.id.replace(
+	// 			/#/g,
+	// 			''
+	// 		) }]]`;
+	// 		editor.model.change( () => {
+	// 			cbFn( editor, formattedText );
+	// 		} );
+	// 		// return writer.createAttributeElement(
+	// 		// 	'span',
+	// 		// 	{
+	// 		// 		class: 'mention',
+	// 		// 		'data-mention': `[[${ modelAttributeValue.id }]]`
+	// 		// 	},
+	// 		// 	{
+	// 		// 		// Make mention attribute to be wrapped by other attribute elements.
+	// 		// 		priority: 20,
+	// 		// 		// Prevent merging mentions together.
+	// 		// 		id: modelAttributeValue.uid
+	// 		// 	}
+	// 		// );
+	// 	},
+	// 	converterPriority: 'high'
+	// } );
 }
 
 export default class DecoupledEditor extends DecoupledEditorBase {}
