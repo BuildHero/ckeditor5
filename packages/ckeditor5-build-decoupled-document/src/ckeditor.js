@@ -259,32 +259,29 @@ function CustomImageUploadAdapterPlugin( editor ) {
 }
 
 function MentionCustomization( editor ) {
-	// The upcast converter will convert <a class="mention" href="" data-user-id="">
-	// elements to the model 'mention' attribute.
-	editor.conversion.for( 'upcast' ).elementToAttribute( {
-		view: {
-			name: 'span',
-			key: 'data-mention',
-			classes: 'mention',
-			attributes: {
-				'data-user-id': true
-			}
-		},
-		model: {
-			key: 'mention',
-			value: viewItem => {
-			// The mention feature expects that the mention attribute value
-			// in the model is a plain object with a set of additional attributes.
-			// In order to create a proper object, use the toMentionAttribute helper method:
-				const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
-				// Add any other properties that you need.
-				} );
-
-				return mentionAttribute;
-			}
-		},
-		converterPriority: 'high'
-	} );
+	// editor.conversion.for( 'upcast' ).elementToAttribute( {
+	// 	view: {
+	// 		name: 'span',
+	// 		key: 'data-mention',
+	// 		classes: 'mention',
+	// 		attributes: {
+	// 			'data-user-id': true
+	// 		}
+	// 	},
+	// 	model: {
+	// 		key: 'mention',
+	// 		value: viewItem => {
+	// 		// The mention feature expects that the mention attribute value
+	// 		// in the model is a plain object with a set of additional attributes.
+	// 		// In order to create a proper object, use the toMentionAttribute helper method:
+	// 			const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
+	// 			// Add any other properties that you need.
+	// 			} );
+	// 			return mentionAttribute;
+	// 		}
+	// 	},
+	// 	converterPriority: 'high'
+	// } );
 
 	// Downcast the model 'mention' text attribute to a view <a> element.
 	editor.conversion.for( 'downcast' ).attributeToElement( {
@@ -304,7 +301,7 @@ function MentionCustomization( editor ) {
 				/#/g,
 				''
 			) }]]`;
-			return editor.model.change( () => {
+			editor.model.change( () => {
 				cbFn( editor, formattedText );
 			} );
 			// return writer.createAttributeElement(
