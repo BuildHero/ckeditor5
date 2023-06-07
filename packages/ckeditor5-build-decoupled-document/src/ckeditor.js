@@ -318,9 +318,9 @@ function MentionCustomization( editor ) {
 				/#/g,
 				''
 			) }]]`;
-			editor.model.change( () => {
-				cbFn( editor, formattedText );
-			} );
+			// editor.model.change( () => {
+			cbFn( editor, formattedText );
+			// } );
 			// return writer.createAttributeElement(
 			// 	'span',
 			// 	{
