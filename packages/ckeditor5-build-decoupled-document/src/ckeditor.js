@@ -306,21 +306,21 @@ function MentionCustomization( editor ) {
 				return;
 			}
 
-			// const smartFieldsConfig = editor.config._config.smartFields;
-			// const {
-			// 	cbFn = () => {}
-			// } = smartFieldsConfig;
+			const smartFieldsConfig = editor.config._config.smartFields;
+			const {
+				cbFn = () => {}
+			} = smartFieldsConfig;
 			// eslint-disable-next-line no-undef
 			console.log( { writer } );
-			writer.removeAttribute( 'mention' );
+			// writer.removeAttribute( 'mention' );
 
-			// const formattedText = `[[${ modelAttributeValue.id.replace(
-			// 	/#/g,
-			// 	''
-			// ) }]]`;
-			// editor.model.change( () => {
-			// 	cbFn( editor, formattedText );
-			// } );
+			const formattedText = `[[${ modelAttributeValue.id.replace(
+				/#/g,
+				''
+			) }]]`;
+			editor.model.change( () => {
+				cbFn( editor, formattedText );
+			} );
 			// return writer.createAttributeElement(
 			// 	'span',
 			// 	{
