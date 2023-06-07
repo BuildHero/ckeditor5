@@ -258,6 +258,42 @@ function CustomImageUploadAdapterPlugin( editor ) {
 	};
 }
 
+// const items = [
+// 	{ id: '@swarley', userId: '1', name: 'Barney Stinson', link: 'https://www.imdb.com/title/tt0460649/characters/nm0000439' },
+// 	{ id: '@lilypad', userId: '2', name: 'Lily Aldrin', link: 'https://www.imdb.com/title/tt0460649/characters/nm0004989' },
+// 	{ id: '@marry', userId: '3', name: 'Marry Ann Lewis', link: 'https://www.imdb.com/title/tt0460649/characters/nm1130627' },
+// 	{ id: '@marshmallow', userId: '4', name: 'Marshall Eriksen', link: 'https://www.imdb.com/title/tt0460649/characters/nm0781981' },
+// 	{ id: '@rsparkles', userId: '5', name: 'Robin Scherbatsky', link: 'https://www.imdb.com/title/tt0460649/characters/nm1130627' },
+// 	{ id: '@tdog', userId: '6', name: 'Ted Mosby', link: 'https://www.imdb.com/title/tt0460649/characters/nm1102140' }
+// ];
+
+// function getFeedItems( queryText ) {
+// 	// As an example of an asynchronous action, return a promise
+// 	// that resolves after a 100ms timeout.
+// 	// This can be a server request or any sort of delayed action.
+// 	return new Promise( resolve => {
+// 		const itemsToDisplay = items
+// 			// Filter out the full list of all items to only those matching the query text.
+// 			.filter( isItemMatching )
+// 			// Return 10 items max - needed for generic queries when the list may contain hundreds of elements.
+// 			.slice( 0, 10 );
+
+// 		resolve( itemsToDisplay );
+// 	} );
+
+// 	// Filtering function - it uses `name` and `username` properties of an item to find a match.
+// 	function isItemMatching( item ) {
+// 		// Make the search case-insensitive.
+// 		const searchString = queryText.toLowerCase();
+
+// 		// Include an item in the search results if name or username includes the current user input.
+// 		return (
+// 			item.name.toLowerCase().includes( searchString ) ||
+//             item.id.toLowerCase().includes( searchString )
+// 		);
+// 	}
+// }
+
 function MentionCustomization( editor ) {
 	// eslint-disable-next-line no-undef
 	console.log( { editor } );
@@ -268,7 +304,8 @@ function MentionCustomization( editor ) {
 			key: 'data-mention',
 			classes: 'mention',
 			attributes: {
-				'data-user-id': true
+				'data-user-id': true,
+				id: 'mention-id'
 			}
 		},
 		model: {
@@ -279,7 +316,6 @@ function MentionCustomization( editor ) {
 			// In order to create a proper object, use the toMentionAttribute helper method:
 				const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
 				// Add any other properties that you need.
-					_text: 'this is a test'
 				} );
 				return mentionAttribute;
 			}
@@ -296,26 +332,11 @@ function MentionCustomization( editor ) {
 				return;
 			}
 
-			// const smartFieldsConfig = editor.config._config.smartFields;
-			// const {
-			// 	cbFn = () => {}
-			// } = smartFieldsConfig;
-			// // eslint-disable-next-line no-undef
-			// console.log( { writer } );
-			// // writer.removeAttribute( 'mention' );
-
-			// const formattedText = `[[${ modelAttributeValue.id.replace(
-			// 	/#/g,
-			// 	''
-			// ) }]]`;
-			// editor.model.change( () => {
-			// 	cbFn( editor, formattedText );
-			// } );
-			return writer.createAttributeElement(
+			writer.createAttributeElement(
 				'span',
 				{
 					class: 'mention',
-					'data-mention': `[[${ modelAttributeValue.id.replace( '#', '' ) }]]`
+					id: 'mention-id'
 				},
 				{
 					// Make mention attribute to be wrapped by other attribute elements.
@@ -324,6 +345,22 @@ function MentionCustomization( editor ) {
 					id: modelAttributeValue.uid
 				}
 			);
+
+			const smartFieldsConfig = editor.config._config.smartFields;
+			const {
+				cbFn = () => {}
+			} = smartFieldsConfig;
+			// eslint-disable-next-line no-undef
+			console.log( { writer } );
+			// writer.removeAttribute( 'mention' );
+
+			const formattedText = `[[${ modelAttributeValue.id.replace(
+				/#/g,
+				''
+			) }]]`;
+			editor.model.change( () => {
+				cbFn( editor, formattedText );
+			} );
 		},
 		converterPriority: 'high'
 	} );
@@ -455,6 +492,15 @@ DecoupledEditor.defaultConfig = {
 			'insertSmartField'
 		]
 	},
+	// mention: {
+	// 	dropdownLimit: 4,
+	// 	feeds: [
+	// 		{
+	// 			marker: '@',
+	// 			feed: getFeedItems
+	// 		}
+	// 	]
+	// },
 	image: {
 		styles: [ 'full', 'alignLeft', 'alignRight' ],
 		resizeUnit: 'px',
