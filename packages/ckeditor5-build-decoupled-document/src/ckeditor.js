@@ -312,7 +312,7 @@ function MentionCustomization( editor ) {
 			} = smartFieldsConfig;
 			// eslint-disable-next-line no-undef
 			console.log( { writer } );
-			// writer.removeSelectionAttribute( 'data-mention' );
+			writer.removeAttribute( 'data-mention' );
 
 			const formattedText = `[[${ modelAttributeValue.id.replace(
 				/#/g,
