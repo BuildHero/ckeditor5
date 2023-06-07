@@ -279,6 +279,7 @@ function MentionCustomization( editor ) {
 			// In order to create a proper object, use the toMentionAttribute helper method:
 				const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
 				// Add any other properties that you need.
+					_text: 'this is a test'
 				} );
 				return mentionAttribute;
 			}
