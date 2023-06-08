@@ -258,113 +258,77 @@ function CustomImageUploadAdapterPlugin( editor ) {
 	};
 }
 
-// const items = [
-// 	{ id: '@swarley', userId: '1', name: 'Barney Stinson', link: 'https://www.imdb.com/title/tt0460649/characters/nm0000439' },
-// 	{ id: '@lilypad', userId: '2', name: 'Lily Aldrin', link: 'https://www.imdb.com/title/tt0460649/characters/nm0004989' },
-// 	{ id: '@marry', userId: '3', name: 'Marry Ann Lewis', link: 'https://www.imdb.com/title/tt0460649/characters/nm1130627' },
-// 	{ id: '@marshmallow', userId: '4', name: 'Marshall Eriksen', link: 'https://www.imdb.com/title/tt0460649/characters/nm0781981' },
-// 	{ id: '@rsparkles', userId: '5', name: 'Robin Scherbatsky', link: 'https://www.imdb.com/title/tt0460649/characters/nm1130627' },
-// 	{ id: '@tdog', userId: '6', name: 'Ted Mosby', link: 'https://www.imdb.com/title/tt0460649/characters/nm1102140' }
-// ];
+// function MentionCustomization( editor ) {
+// 	// eslint-disable-next-line no-undef
+// 	console.log( { editor } );
 
-// function getFeedItems( queryText ) {
-// 	// As an example of an asynchronous action, return a promise
-// 	// that resolves after a 100ms timeout.
-// 	// This can be a server request or any sort of delayed action.
-// 	return new Promise( resolve => {
-// 		const itemsToDisplay = items
-// 			// Filter out the full list of all items to only those matching the query text.
-// 			.filter( isItemMatching )
-// 			// Return 10 items max - needed for generic queries when the list may contain hundreds of elements.
-// 			.slice( 0, 10 );
-
-// 		resolve( itemsToDisplay );
+// 	editor.conversion.for( 'upcast' ).elementToAttribute( {
+// 		view: {
+// 			name: 'span',
+// 			key: 'data-mention',
+// 			classes: 'mention',
+// 			attributes: {
+// 				'data-user-id': true,
+// 				id: 'mention-id'
+// 			}
+// 		},
+// 		model: {
+// 			key: 'mention',
+// 			value: viewItem => {
+// 			// The mention feature expects that the mention attribute value
+// 			// in the model is a plain object with a set of additional attributes.
+// 			// In order to create a proper object, use the toMentionAttribute helper method:
+// 				const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
+// 				// Add any other properties that you need.
+// 				} );
+// 				return mentionAttribute;
+// 			}
+// 		},
+// 		converterPriority: 'high'
 // 	} );
 
-// 	// Filtering function - it uses `name` and `username` properties of an item to find a match.
-// 	function isItemMatching( item ) {
-// 		// Make the search case-insensitive.
-// 		const searchString = queryText.toLowerCase();
+// 	// Downcast the model 'mention' text attribute to a view <a> element.
+// 	editor.conversion.for( 'downcast' ).attributeToElement( {
+// 		model: 'mention',
+// 		view: ( modelAttributeValue, { writer } ) => {
+// 		// Do not convert empty attributes (lack of value means no mention).
+// 			if ( !modelAttributeValue ) {
+// 				return;
+// 			}
 
-// 		// Include an item in the search results if name or username includes the current user input.
-// 		return (
-// 			item.name.toLowerCase().includes( searchString ) ||
-//             item.id.toLowerCase().includes( searchString )
-// 		);
-// 	}
+// 			writer.createAttributeElement(
+// 				'span',
+// 				{
+// 					class: 'mention',
+// 					id: 'mention-id'
+// 				},
+// 				{
+// 					// Make mention attribute to be wrapped by other attribute elements.
+// 					priority: 20,
+// 					// Prevent merging mentions together.
+// 					id: modelAttributeValue.uid
+// 				}
+// 			);
+
+// 			const smartFieldsConfig = editor.config._config.smartFields;
+// 			const {
+// 				cbFn = () => {}
+// 			} = smartFieldsConfig;
+// 			// eslint-disable-next-line no-undef
+// 			console.log( { writer } );
+// 			// writer.removeAttribute( 'mention' );
+
+// 			const formattedText = `[[${ modelAttributeValue.id.replace(
+// 				/#/g,
+// 				''
+// 			) }]]`;
+// 			editor.model.change( () => {
+// 				cbFn( editor, formattedText );
+// 			} );
+// 		},
+// 		converterPriority: 'high'
+// 	} );
 // }
-
-function MentionCustomization( editor ) {
-	// eslint-disable-next-line no-undef
-	console.log( { editor } );
-
-	editor.conversion.for( 'upcast' ).elementToAttribute( {
-		view: {
-			name: 'span',
-			key: 'data-mention',
-			classes: 'mention',
-			attributes: {
-				'data-user-id': true,
-				id: 'mention-id'
-			}
-		},
-		model: {
-			key: 'mention',
-			value: viewItem => {
-			// The mention feature expects that the mention attribute value
-			// in the model is a plain object with a set of additional attributes.
-			// In order to create a proper object, use the toMentionAttribute helper method:
-				const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
-				// Add any other properties that you need.
-				} );
-				return mentionAttribute;
-			}
-		},
-		converterPriority: 'high'
-	} );
-
-	// Downcast the model 'mention' text attribute to a view <a> element.
-	editor.conversion.for( 'downcast' ).attributeToElement( {
-		model: 'mention',
-		view: ( modelAttributeValue, { writer } ) => {
-		// Do not convert empty attributes (lack of value means no mention).
-			if ( !modelAttributeValue ) {
-				return;
-			}
-
-			writer.createAttributeElement(
-				'span',
-				{
-					class: 'mention',
-					id: 'mention-id'
-				},
-				{
-					// Make mention attribute to be wrapped by other attribute elements.
-					priority: 20,
-					// Prevent merging mentions together.
-					id: modelAttributeValue.uid
-				}
-			);
-
-			const smartFieldsConfig = editor.config._config.smartFields;
-			const {
-				cbFn = () => {}
-			} = smartFieldsConfig;
-			// eslint-disable-next-line no-undef
-			console.log( { writer } );
-			// writer.removeAttribute( 'mention' );
-
-			const formattedText = `[[${ modelAttributeValue.id.replace(
-				/#/g,
-				''
-			) }]]`;
-			editor.model.change( () => {
-				cbFn( editor, formattedText );
-			} );
-		},
-		converterPriority: 'high'
-	} );
-}
 
 export default class DecoupledEditor extends DecoupledEditorBase {}
 
@@ -434,7 +398,7 @@ DecoupledEditor.builtinPlugins = [
 	ListProperties,
 	MediaEmbed,
 	Mention,
-	MentionCustomization,
+	// MentionCustomization,
 	PageBreak,
 	Pagination,
 	Paragraph,
@@ -492,15 +456,6 @@ DecoupledEditor.defaultConfig = {
 			'insertSmartField'
 		]
 	},
-	// mention: {
-	// 	dropdownLimit: 4,
-	// 	feeds: [
-	// 		{
-	// 			marker: '@',
-	// 			feed: getFeedItems
-	// 		}
-	// 	]
-	// },
 	image: {
 		styles: [ 'full', 'alignLeft', 'alignRight' ],
 		resizeUnit: 'px',
