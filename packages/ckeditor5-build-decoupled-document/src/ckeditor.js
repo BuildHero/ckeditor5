@@ -119,10 +119,10 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 // ];
 
 class InsertSmartField extends Plugin {
-	_createInput( label ) {
-		const labeledInput = new InputView( this.editor.locale, createLabeledInputText );
-		labeledInput.label = label;
-		return labeledInput;
+	_createInput( placeholder ) {
+		const input = new InputView( this.editor.locale, createLabeledInputText );
+		input.placeholder = placeholder;
+		return input;
 	}
 	_isItemMatching( item, queryText ) {
 		return item.toLowerCase().includes( queryText.toLowerCase() );
@@ -132,7 +132,6 @@ class InsertSmartField extends Plugin {
 		const componentFactory = editor.ui.componentFactory;
 		const t = editor.t;
 		const smartFieldsConfig = editor.config._config.smartFields;
-		console.log( { smartFieldsConfig } );
 		const {
 			cbFn = () => {},
 			smartFieldsDropdownList: smartFields = []
@@ -158,11 +157,12 @@ class InsertSmartField extends Plugin {
 				button.className = 'ck ck-button ck-off ck-button_with-text';
 				button.textContent = smartfield;
 				button.onclick = evt => {
-					console.log( 'in on click', evt, editor );
 					const formattedText = `[[${ evt.target.innerText.replace(
 						/ /g,
 						''
 					) }]]`;
+					const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
+					panel.classList.remove( 'ck-dropdown__panel-visible' );
 					editor.model.change( () => {
 						cbFn( editor, formattedText );
 					} );
@@ -387,13 +387,6 @@ function MentionCustomization( editor ) {
 		},
 		model: {
 			key: 'mention'
-			// value: viewItem => {
-			// // The mention feature expects that the mention attribute value
-			// // in the model is a plain object with a set of additional attributes.
-			// // In order to create a proper object, use the toMentionAttribute helper method:
-			// 	const mentionAttribute = editor.plugins.get( 'Mention' );
-			// 	return mentionAttribute;
-			// }
 		},
 		converterPriority: 'high'
 	} );
