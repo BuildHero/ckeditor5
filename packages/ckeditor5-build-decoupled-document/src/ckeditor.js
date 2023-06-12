@@ -132,6 +132,7 @@ class InsertSmartField extends Plugin {
 		const componentFactory = editor.ui.componentFactory;
 		const t = editor.t;
 		const smartFieldsConfig = editor.config._config.smartFields;
+		console.log( { smartFieldsConfig } );
 		const {
 			cbFn = () => {},
 			smartFieldsDropdownList: smartFields = []
