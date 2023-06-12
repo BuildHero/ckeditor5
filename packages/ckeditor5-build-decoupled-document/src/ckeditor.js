@@ -3,6 +3,13 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
+/* eslint-disable no-undef */
+
+import {
+	InputView,
+	createLabeledInputText
+} from '@ckeditor/ckeditor5-ui';
+
 // The editor creator to use.
 import DecoupledEditorBase from '@ckeditor/ckeditor5-editor-decoupled/src/decouplededitor';
 
@@ -56,19 +63,115 @@ import smartfieldIcon from './smartfieldIcon.svg';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 // import LineHeight from 'ckeditor5-line-height-plugin/src/lineheight';
 
+const smartFields = [
+	'Account Manager',
+	'Billing Customer Address',
+	'Billing Customer Bill To',
+	'Billing Customer Name',
+	'Billing Address.Street Address Line 1',
+	'Billing Address.Street Address Line 2',
+	'Billing Address.City',
+	'Billing Address.State',
+	'Billing Address.Zip Code',
+	'Billing Address.Country',
+	'Company Name',
+	'Department/Company Phone',
+	'Department/Company Address',
+	'Department/Company Logo',
+	'Current Date',
+	'Customer Address',
+	'Customer Name',
+	'Days until Expiration',
+	'Discount',
+	'Expiration Date',
+	'Issue Description',
+	'Labor Subtotal',
+	'Labor Total',
+	'Line Items',
+	'Material Total',
+	'Ordered By',
+	'Ordered By Email',
+	'Ordered By Phone',
+	'Parts and Materials Subtotal',
+	'Property Address',
+	'Property Address.Street Address Line 1',
+	'Property Address.Street Address Line 2',
+	'Property Address.City',
+	'Property Address.State',
+	'Property Address.Zip Code',
+	'Property Address.Country',
+	'Property Name',
+	'Project Manager',
+	'Project Manager Email',
+	'Property Rep',
+	'Quote Creation Date',
+	'Quote Number',
+	'Quote Subject',
+	'Quote Subtotal',
+	'Sold By',
+	'Sold By Email',
+	'Tasks',
+	'Task Groups',
+	'Tax Amount',
+	'Terms and Conditions',
+	'Total',
+	'Totals and Subtotals'
+];
+
 class InsertSmartField extends Plugin {
+	_createInput( label ) {
+		const labeledInput = new InputView( this.editor.locale, createLabeledInputText );
+		labeledInput.label = label;
+		return labeledInput;
+	}
+	_isItemMatching( item, queryText ) {
+		return item.toLowerCase().includes( queryText.toLowerCase() );
+	}
 	init() {
 		const editor = this.editor;
 		const componentFactory = editor.ui.componentFactory;
 		const t = editor.t;
-		const smartFieldsConfig = editor.config._config.smartFields;
-		const {
-			cbFn = () => {},
-			smartFieldsDropdownList: smartFields = []
-		} = smartFieldsConfig;
 
+		const searchInputView = this._createInput( 'Search smartfields' );
+		searchInputView.set( {
+			class: 'search-input'
+		} );
+
+		searchInputView.on( 'input', ( test, evt ) => {
+			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
+			const toolbarContainer = editor.ui.view.toolbar;
+			const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
+			// Clear the existing list
+			dropdownList.innerHTML = '';
+
+			filteredSmartfieldList.forEach( smartfield => {
+				const listItem = document.createElement( 'li' );
+				listItem.className = 'ck ck-reset ck-list';
+				const button = document.createElement( 'button' );
+				button.type = 'button';
+				button.className = 'ck ck-button ck-off ck-button_with-text';
+				button.textContent = smartfield;
+				button.onclick = evt => {
+					console.log( 'in on click', evt, editor );
+					const formattedText = `[[${ evt.target.innerText.replace(
+						/ /g,
+						''
+					) }]]`;
+					editor.model.change( () => {
+						cbFn( editor, formattedText );
+					} );
+				};
+				listItem.appendChild( button );
+				dropdownList.appendChild( listItem );
+			} );
+		} );
+
+		searchInputView.render();
 		componentFactory.add( 'insertSmartField', locale => {
 			const dropdownView = createDropdown( locale );
+			dropdownView.set( {
+				class: 'smartfield-dropdown-button'
+			} );
 
 			dropdownView.buttonView.set( {
 				class: 'smartfield-icon',
@@ -92,6 +195,9 @@ class InsertSmartField extends Plugin {
 			);
 			// Create a dropdown with list of smartfields inside the panel.
 			addListToDropdown( dropdownView, items );
+			dropdownView.render();
+			dropdownView.panelView.element.append( searchInputView.element );
+
 			dropdownView.on( 'execute', evt => {
 				const formattedText = `[[${ evt.source.label.replace(
 					/ /g,
@@ -101,6 +207,7 @@ class InsertSmartField extends Plugin {
 					cbFn( editor, formattedText );
 				} );
 			} );
+			console.log( { dropdownView } );
 			return dropdownView;
 		} );
 	}
@@ -273,16 +380,14 @@ function MentionCustomization( editor ) {
 			}
 		},
 		model: {
-			key: 'mention',
-			value: viewItem => {
-			// The mention feature expects that the mention attribute value
-			// in the model is a plain object with a set of additional attributes.
-			// In order to create a proper object, use the toMentionAttribute helper method:
-				const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
-				// Add any other properties that you need.
-				} );
-				return mentionAttribute;
-			}
+			key: 'mention'
+			// value: viewItem => {
+			// // The mention feature expects that the mention attribute value
+			// // in the model is a plain object with a set of additional attributes.
+			// // In order to create a proper object, use the toMentionAttribute helper method:
+			// 	const mentionAttribute = editor.plugins.get( 'Mention' );
+			// 	return mentionAttribute;
+			// }
 		},
 		converterPriority: 'high'
 	} );
@@ -291,7 +396,6 @@ function MentionCustomization( editor ) {
 	editor.conversion.for( 'downcast' ).attributeToElement( {
 		model: 'mention',
 		view: ( modelAttributeValue, { writer } ) => {
-		// Do not convert empty attributes (lack of value means no mention).
 			if ( !modelAttributeValue ) {
 				return;
 			}
@@ -309,21 +413,6 @@ function MentionCustomization( editor ) {
 					id: modelAttributeValue.uid
 				}
 			);
-
-			// const smartFieldsConfig = editor.config._config.smartFields;
-			// const {
-			// 	cbFn = () => {}
-			// } = smartFieldsConfig;
-			// eslint-disable-next-line no-undef
-			console.log( { writer } );
-
-			// const formattedText = `[[${ modelAttributeValue.id.replace(
-			// 	/#/g,
-			// 	''
-			// ) }]]`;
-			// editor.model.change( () => {
-			// 	cbFn( editor, formattedText );
-			// } );
 		},
 		converterPriority: 'high'
 	} );
@@ -455,15 +544,6 @@ DecoupledEditor.defaultConfig = {
 			'insertSmartField'
 		]
 	},
-	// mention: {
-	// 	dropdownLimit: 4,
-	// 	feeds: [
-	// 		{
-	// 			marker: '@',
-	// 			feed: getFeedItems
-	// 		}
-	// 	]
-	// },
 	image: {
 		styles: [ 'full', 'alignLeft', 'alignRight' ],
 		resizeUnit: 'px',
