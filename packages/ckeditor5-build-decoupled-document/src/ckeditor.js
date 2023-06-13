@@ -131,7 +131,7 @@ class InsertSmartField extends Plugin {
 	_isItemMatching( item, queryText ) {
 		return item.toLowerCase().includes( queryText.toLowerCase() );
 	}
-	_generateListItems( sfList ) {
+	_generateListItems( sfList, cbFn ) {
 		const toolbarContainer = this._getToolbarContainer();
 		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
 		// Clear the existing list
@@ -177,7 +177,7 @@ class InsertSmartField extends Plugin {
 			// const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
 			// // Clear the existing list
 			// dropdownList.innerHTML = '';
-			this._generateListItems( filteredSmartfieldList );
+			this._generateListItems( filteredSmartfieldList, cbFn );
 		} );
 
 		searchInputView.render();
@@ -227,7 +227,7 @@ class InsertSmartField extends Plugin {
 					const toolbarContainer = this._getToolbarContainer( editor );
 					const searchInput = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-input' );
 					searchInput.value = '';
-					this._generateListItems( smartFields );
+					this._generateListItems( smartFields, cbFn );
 				}
 			} );
 			console.log( { dropdownView } );
