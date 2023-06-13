@@ -63,61 +63,6 @@ import smartfieldIcon from './smartfieldIcon.svg';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 // import LineHeight from 'ckeditor5-line-height-plugin/src/lineheight';
 
-// const smartFields = [
-// 	'Account Manager',
-// 	'Billing Customer Address',
-// 	'Billing Customer Bill To',
-// 	'Billing Customer Name',
-// 	'Billing Address.Street Address Line 1',
-// 	'Billing Address.Street Address Line 2',
-// 	'Billing Address.City',
-// 	'Billing Address.State',
-// 	'Billing Address.Zip Code',
-// 	'Billing Address.Country',
-// 	'Company Name',
-// 	'Department/Company Phone',
-// 	'Department/Company Address',
-// 	'Department/Company Logo',
-// 	'Current Date',
-// 	'Customer Address',
-// 	'Customer Name',
-// 	'Days until Expiration',
-// 	'Discount',
-// 	'Expiration Date',
-// 	'Issue Description',
-// 	'Labor Subtotal',
-// 	'Labor Total',
-// 	'Line Items',
-// 	'Material Total',
-// 	'Ordered By',
-// 	'Ordered By Email',
-// 	'Ordered By Phone',
-// 	'Parts and Materials Subtotal',
-// 	'Property Address',
-// 	'Property Address.Street Address Line 1',
-// 	'Property Address.Street Address Line 2',
-// 	'Property Address.City',
-// 	'Property Address.State',
-// 	'Property Address.Zip Code',
-// 	'Property Address.Country',
-// 	'Property Name',
-// 	'Project Manager',
-// 	'Project Manager Email',
-// 	'Property Rep',
-// 	'Quote Creation Date',
-// 	'Quote Number',
-// 	'Quote Subject',
-// 	'Quote Subtotal',
-// 	'Sold By',
-// 	'Sold By Email',
-// 	'Tasks',
-// 	'Task Groups',
-// 	'Tax Amount',
-// 	'Terms and Conditions',
-// 	'Total',
-// 	'Totals and Subtotals'
-// ];
-
 class InsertSmartField extends Plugin {
 	_getToolbarContainer() {
 		return this.editor.ui.view.toolbar;
@@ -136,13 +81,14 @@ class InsertSmartField extends Plugin {
 		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
 		// Clear the existing list
 		dropdownList.innerHTML = '';
-		sfList.forEach( smartfield => {
+		sfList.forEach( ( smartfield, idx ) => {
 			const listItem = document.createElement( 'li' );
 			listItem.className = 'ck ck-reset ck-list';
 			const button = document.createElement( 'button' );
 			button.type = 'button';
 			button.className = 'ck ck-button ck-off ck-button_with-text';
 			button.textContent = smartfield;
+			button.tabIndex = idx;
 			button.onclick = evt => {
 				const formattedText = `[[${ evt.target.innerText.replace(
 					/ /g,
@@ -167,15 +113,15 @@ class InsertSmartField extends Plugin {
 			cbFn = () => {},
 			smartFieldsDropdownList: smartFields = []
 		} = smartFieldsConfig;
-
 		const searchInputView = this._createInput( 'Search smartfields', 'smartfield-search-input' );
 
-		searchInputView.on( 'input', ( _, evt ) => {
+		searchInputView.on( 'input', ( a, evt ) => {
 			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
 			this._generateListItems( filteredSmartfieldList, cbFn );
 		} );
 
 		searchInputView.render();
+
 		componentFactory.add( 'insertSmartField', locale => {
 			const dropdownView = createDropdown( locale );
 			dropdownView.set( {
