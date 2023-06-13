@@ -5,11 +5,6 @@
 
 /* eslint-disable no-undef */
 
-import {
-	InputView,
-	createLabeledInputText
-} from '@ckeditor/ckeditor5-ui';
-
 // The editor creator to use.
 import DecoupledEditorBase from '@ckeditor/ckeditor5-editor-decoupled/src/decouplededitor';
 
@@ -56,6 +51,10 @@ import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperti
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import Collection from '@ckeditor/ckeditor5-utils/src/collection';
+import {
+	InputView,
+	createLabeledInputText
+} from '@ckeditor/ckeditor5-ui';
 import Model from '@ckeditor/ckeditor5-ui/src/model';
 import { Plugin } from '@ckeditor/ckeditor5-core/src';
 import { createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
@@ -163,8 +162,8 @@ class InsertSmartField extends Plugin {
 				} );
 			} );
 
-			dropdownView.on( 'change', ( a, b, c ) => {
-				if ( a.name === 'change:isOpen' && !c ) {
+			dropdownView.on( 'change', ( evt, _, isOpen ) => {
+				if ( evt.name === 'change:isOpen' && !isOpen ) {
 					const toolbarContainer = this._getToolbarContainer( editor );
 					const searchInput = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-input' );
 					searchInput.value = '';
