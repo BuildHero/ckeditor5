@@ -119,8 +119,8 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 // ];
 
 class InsertSmartField extends Plugin {
-	_getToolbarContainer( editor ) {
-		return editor.ui.view.toolbar;
+	_getToolbarContainer() {
+		return this.editor.ui.view.toolbar;
 	}
 	_createInput( placeholder, className ) {
 		const input = new InputView( this.editor.locale, createLabeledInputText );
@@ -132,7 +132,7 @@ class InsertSmartField extends Plugin {
 		return item.toLowerCase().includes( queryText.toLowerCase() );
 	}
 	_generateListItems( sfList ) {
-		const toolbarContainer = this._getToolbarContainer( editor );
+		const toolbarContainer = this._getToolbarContainer();
 		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
 		// Clear the existing list
 		dropdownList.innerHTML = '';
@@ -151,7 +151,7 @@ class InsertSmartField extends Plugin {
 				) }]]`;
 				const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
 				panel.classList.remove( 'ck-dropdown__panel-visible' );
-				editor.model.change( () => {
+				this.editor.model.change( () => {
 					cbFn( editor, formattedText );
 				} );
 			};
@@ -171,12 +171,7 @@ class InsertSmartField extends Plugin {
 
 		const searchInputView = this._createInput( 'Search smartfields', 'smartfield-search-input' );
 
-		console.log( { searchInputView } );
-		searchInputView.on( 'load', ( a, b, c ) => {
-			console.log( { a, b, c } );
-		} );
-
-		searchInputView.on( 'input', ( test, evt ) => {
+		searchInputView.on( 'input', ( _, evt ) => {
 			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
 			// const toolbarContainer = this._getToolbarContainer( editor );
 			// const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
