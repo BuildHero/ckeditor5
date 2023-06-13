@@ -119,13 +119,45 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 // ];
 
 class InsertSmartField extends Plugin {
-	_createInput( placeholder ) {
+	_getToolbarContainer( editor ) {
+		return editor.ui.view.toolbar;
+	}
+	_createInput( placeholder, className ) {
 		const input = new InputView( this.editor.locale, createLabeledInputText );
 		input.placeholder = placeholder;
+		input.class = className;
 		return input;
 	}
 	_isItemMatching( item, queryText ) {
 		return item.toLowerCase().includes( queryText.toLowerCase() );
+	}
+	_generateListItems( sfList ) {
+		const toolbarContainer = this._getToolbarContainer( editor );
+		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
+		// Clear the existing list
+		dropdownList.innerHTML = '';
+
+		sfList.forEach( smartfield => {
+			const listItem = document.createElement( 'li' );
+			listItem.className = 'ck ck-reset ck-list';
+			const button = document.createElement( 'button' );
+			button.type = 'button';
+			button.className = 'ck ck-button ck-off ck-button_with-text';
+			button.textContent = smartfield;
+			button.onclick = evt => {
+				const formattedText = `[[${ evt.target.innerText.replace(
+					/ /g,
+					''
+				) }]]`;
+				const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
+				panel.classList.remove( 'ck-dropdown__panel-visible' );
+				editor.model.change( () => {
+					cbFn( editor, formattedText );
+				} );
+			};
+			listItem.appendChild( button );
+			dropdownList.appendChild( listItem );
+		} );
 	}
 	init() {
 		const editor = this.editor;
@@ -137,39 +169,20 @@ class InsertSmartField extends Plugin {
 			smartFieldsDropdownList: smartFields = []
 		} = smartFieldsConfig;
 
-		const searchInputView = this._createInput( 'Search smartfields' );
-		searchInputView.set( {
-			class: 'search-input'
+		const searchInputView = this._createInput( 'Search smartfields', 'smartfield-search-input' );
+
+		console.log( { searchInputView } );
+		searchInputView.on( 'load', ( a, b, c ) => {
+			console.log( { a, b, c } );
 		} );
 
 		searchInputView.on( 'input', ( test, evt ) => {
 			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
-			const toolbarContainer = editor.ui.view.toolbar;
-			const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
-			// Clear the existing list
-			dropdownList.innerHTML = '';
-
-			filteredSmartfieldList.forEach( smartfield => {
-				const listItem = document.createElement( 'li' );
-				listItem.className = 'ck ck-reset ck-list';
-				const button = document.createElement( 'button' );
-				button.type = 'button';
-				button.className = 'ck ck-button ck-off ck-button_with-text';
-				button.textContent = smartfield;
-				button.onclick = evt => {
-					const formattedText = `[[${ evt.target.innerText.replace(
-						/ /g,
-						''
-					) }]]`;
-					const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
-					panel.classList.remove( 'ck-dropdown__panel-visible' );
-					editor.model.change( () => {
-						cbFn( editor, formattedText );
-					} );
-				};
-				listItem.appendChild( button );
-				dropdownList.appendChild( listItem );
-			} );
+			// const toolbarContainer = this._getToolbarContainer( editor );
+			// const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
+			// // Clear the existing list
+			// dropdownList.innerHTML = '';
+			this._generateListItems( filteredSmartfieldList );
 		} );
 
 		searchInputView.render();
@@ -212,6 +225,15 @@ class InsertSmartField extends Plugin {
 				editor.model.change( () => {
 					cbFn( editor, formattedText );
 				} );
+			} );
+
+			dropdownView.on( 'change', ( a, b, c ) => {
+				if ( a.name === 'change:isOpen' && !c ) {
+					const toolbarContainer = this._getToolbarContainer( editor );
+					const searchInput = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-input' );
+					searchInput.value = '';
+					this._generateListItems( smartFields );
+				}
 			} );
 			console.log( { dropdownView } );
 			return dropdownView;
