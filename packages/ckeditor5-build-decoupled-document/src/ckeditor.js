@@ -136,7 +136,6 @@ class InsertSmartField extends Plugin {
 		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
 		// Clear the existing list
 		dropdownList.innerHTML = '';
-
 		sfList.forEach( smartfield => {
 			const listItem = document.createElement( 'li' );
 			listItem.className = 'ck ck-reset ck-list';
@@ -152,7 +151,7 @@ class InsertSmartField extends Plugin {
 				const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
 				panel.classList.remove( 'ck-dropdown__panel-visible' );
 				this.editor.model.change( () => {
-					cbFn( editor, formattedText );
+					cbFn( this.editor, formattedText );
 				} );
 			};
 			listItem.appendChild( button );
@@ -173,10 +172,6 @@ class InsertSmartField extends Plugin {
 
 		searchInputView.on( 'input', ( _, evt ) => {
 			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
-			// const toolbarContainer = this._getToolbarContainer( editor );
-			// const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
-			// // Clear the existing list
-			// dropdownList.innerHTML = '';
 			this._generateListItems( filteredSmartfieldList, cbFn );
 		} );
 
@@ -230,7 +225,6 @@ class InsertSmartField extends Plugin {
 					this._generateListItems( smartFields, cbFn );
 				}
 			} );
-			console.log( { dropdownView } );
 			return dropdownView;
 		} );
 	}
