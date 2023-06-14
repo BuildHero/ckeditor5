@@ -3,6 +3,8 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
+/* eslint-disable no-undef */
+
 // The editor creator to use.
 import DecoupledEditorBase from '@ckeditor/ckeditor5-editor-decoupled/src/decouplededitor';
 
@@ -35,6 +37,7 @@ import Link from '@ckeditor/ckeditor5-link/src/link';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import ListProperties from '@ckeditor/ckeditor5-list/src/listproperties';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
+import Mention from '@ckeditor/ckeditor5-mention/src/mention';
 import Pagination from '@ckeditor/ckeditor5-pagination/src/pagination';
 import PageBreak from '@ckeditor/ckeditor5-page-break/src/pagebreak';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
@@ -48,6 +51,10 @@ import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperti
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import Collection from '@ckeditor/ckeditor5-utils/src/collection';
+import {
+	InputView,
+	createLabeledInputText
+} from '@ckeditor/ckeditor5-ui';
 import Model from '@ckeditor/ckeditor5-ui/src/model';
 import { Plugin } from '@ckeditor/ckeditor5-core/src';
 import { createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
@@ -56,6 +63,46 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 // import LineHeight from 'ckeditor5-line-height-plugin/src/lineheight';
 
 class InsertSmartField extends Plugin {
+	_getToolbarContainer() {
+		return this.editor.ui.view.toolbar;
+	}
+	_createInput( placeholder, className ) {
+		const input = new InputView( this.editor.locale, createLabeledInputText );
+		input.placeholder = placeholder;
+		input.class = className;
+		return input;
+	}
+	_isItemMatching( item, queryText ) {
+		return item.toLowerCase().includes( queryText.toLowerCase() );
+	}
+	_generateListItems( sfList, cbFn ) {
+		const toolbarContainer = this._getToolbarContainer();
+		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
+		// Clear the existing list
+		dropdownList.innerHTML = '';
+		sfList.forEach( ( smartfield, idx ) => {
+			const listItem = document.createElement( 'li' );
+			listItem.className = 'ck ck-reset ck-list';
+			const button = document.createElement( 'button' );
+			button.type = 'button';
+			button.className = 'ck ck-button ck-off ck-button_with-text';
+			button.textContent = smartfield;
+			button.tabIndex = idx;
+			button.onclick = evt => {
+				const formattedText = `[[${ evt.target.innerText.replace(
+					/ /g,
+					''
+				) }]]`;
+				const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
+				panel.classList.remove( 'ck-dropdown__panel-visible' );
+				this.editor.model.change( () => {
+					cbFn( this.editor, formattedText );
+				} );
+			};
+			listItem.appendChild( button );
+			dropdownList.appendChild( listItem );
+		} );
+	}
 	init() {
 		const editor = this.editor;
 		const componentFactory = editor.ui.componentFactory;
@@ -65,9 +112,21 @@ class InsertSmartField extends Plugin {
 			cbFn = () => {},
 			smartFieldsDropdownList: smartFields = []
 		} = smartFieldsConfig;
+		const searchPlaceholder = new DOMParser().parseFromString( '&#128269;  Search Smartfields', 'text/html' ).body.textContent;
+		const searchInputView = this._createInput( searchPlaceholder );
+
+		searchInputView.on( 'input', ( a, evt ) => {
+			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
+			this._generateListItems( filteredSmartfieldList, cbFn );
+		} );
+
+		searchInputView.render();
 
 		componentFactory.add( 'insertSmartField', locale => {
 			const dropdownView = createDropdown( locale );
+			dropdownView.set( {
+				class: 'smartfield-dropdown-button'
+			} );
 
 			dropdownView.buttonView.set( {
 				class: 'smartfield-icon',
@@ -91,6 +150,9 @@ class InsertSmartField extends Plugin {
 			);
 			// Create a dropdown with list of smartfields inside the panel.
 			addListToDropdown( dropdownView, items );
+			dropdownView.render();
+			dropdownView.panelView.element.append( searchInputView.element );
+
 			dropdownView.on( 'execute', evt => {
 				const formattedText = `[[${ evt.source.label.replace(
 					/ /g,
@@ -99,6 +161,15 @@ class InsertSmartField extends Plugin {
 				editor.model.change( () => {
 					cbFn( editor, formattedText );
 				} );
+			} );
+
+			dropdownView.on( 'change', ( evt, _, isOpen ) => {
+				if ( evt.name === 'change:isOpen' && !isOpen ) {
+					const toolbarContainer = this._getToolbarContainer( editor );
+					const searchInput = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-input' );
+					searchInput.value = '';
+					this._generateListItems( smartFields, cbFn );
+				}
 			} );
 			return dropdownView;
 		} );
@@ -257,6 +328,49 @@ function CustomImageUploadAdapterPlugin( editor ) {
 	};
 }
 
+function MentionCustomization( editor ) {
+	// eslint-disable-next-line no-undef
+	editor.conversion.for( 'upcast' ).elementToAttribute( {
+		view: {
+			name: 'span',
+			key: 'data-mention',
+			classes: 'mention',
+			attributes: {
+				'data-user-id': true,
+				id: 'mention-id'
+			}
+		},
+		model: {
+			key: 'mention'
+		},
+		converterPriority: 'high'
+	} );
+
+	editor.conversion.for( 'downcast' ).attributeToElement( {
+		model: 'mention',
+		view: ( modelAttributeValue, { writer } ) => {
+			if ( !modelAttributeValue ) {
+				return;
+			}
+
+			writer.createAttributeElement(
+				'span',
+				{
+					class: 'mention',
+					id: 'mention-id'
+				},
+				{
+					// Make mention attribute to be wrapped by other attribute elements.
+					priority: 20,
+					// Prevent merging mentions together.
+					id: modelAttributeValue.uid
+				}
+			);
+		},
+		converterPriority: 'high'
+	} );
+}
+
 export default class DecoupledEditor extends DecoupledEditorBase {}
 
 const customColorPalette = [
@@ -324,6 +438,8 @@ DecoupledEditor.builtinPlugins = [
 	List,
 	ListProperties,
 	MediaEmbed,
+	Mention,
+	MentionCustomization,
 	PageBreak,
 	Pagination,
 	Paragraph,
