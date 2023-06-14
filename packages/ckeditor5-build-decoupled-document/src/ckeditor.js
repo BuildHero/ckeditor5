@@ -99,6 +99,9 @@ class InsertSmartField extends Plugin {
 					cbFn( this.editor, formattedText );
 				} );
 			};
+			button.onkeydown = evt => {
+				console.log( 'evtHere', evt );
+			};
 			listItem.appendChild( button );
 			dropdownList.appendChild( listItem );
 		} );
@@ -112,7 +115,8 @@ class InsertSmartField extends Plugin {
 			cbFn = () => {},
 			smartFieldsDropdownList: smartFields = []
 		} = smartFieldsConfig;
-		const searchInputView = this._createInput( 'Search smartfields', 'smartfield-search-input' );
+		const searchPlaceholder = new DOMParser().parseFromString( '&#128269;  Search Smartfields', 'text/html' ).body.textContent;
+		const searchInputView = this._createInput( searchPlaceholder );
 
 		searchInputView.on( 'input', ( a, evt ) => {
 			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
