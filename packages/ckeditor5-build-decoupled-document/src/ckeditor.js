@@ -99,9 +99,6 @@ class InsertSmartField extends Plugin {
 					cbFn( this.editor, formattedText );
 				} );
 			};
-			button.onkeydown = evt => {
-				console.log( 'evtHere', evt );
-			};
 			listItem.appendChild( button );
 			dropdownList.appendChild( listItem );
 		} );
