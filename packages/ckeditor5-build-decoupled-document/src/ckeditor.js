@@ -330,8 +330,6 @@ function CustomImageUploadAdapterPlugin( editor ) {
 
 function MentionCustomization( editor ) {
 	// eslint-disable-next-line no-undef
-	console.log( { editor } );
-
 	editor.conversion.for( 'upcast' ).elementToAttribute( {
 		view: {
 			name: 'span',
@@ -348,7 +346,6 @@ function MentionCustomization( editor ) {
 		converterPriority: 'high'
 	} );
 
-	// Downcast the model 'mention' text attribute to a view <a> element.
 	editor.conversion.for( 'downcast' ).attributeToElement( {
 		model: 'mention',
 		view: ( modelAttributeValue, { writer } ) => {
