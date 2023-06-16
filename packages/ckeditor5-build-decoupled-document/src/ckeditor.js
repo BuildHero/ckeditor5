@@ -82,11 +82,10 @@ class InsertSmartField extends Plugin {
 		dropdownList.innerHTML = '';
 		sfList.forEach( ( smartfield, idx ) => {
 			const listItem = document.createElement( 'li' );
-			listItem.className = 'ck ck-reset ck-list';
+			listItem.className = 'ck ck-list__item';
 			const button = document.createElement( 'button' );
 			button.type = 'button';
 			button.className = 'ck ck-button ck-off ck-button_with-text';
-			button.textContent = smartfield;
 			button.tabIndex = idx;
 			button.onclick = evt => {
 				const formattedText = `[[${ evt.target.innerText.replace(
@@ -99,6 +98,10 @@ class InsertSmartField extends Plugin {
 					cbFn( this.editor, formattedText );
 				} );
 			};
+			const span = document.createElement( 'span' );
+			span.textContent = smartfield;
+			span.className = 'ck ck-button__label';
+			button.append( span );
 			listItem.appendChild( button );
 			dropdownList.appendChild( listItem );
 		} );
