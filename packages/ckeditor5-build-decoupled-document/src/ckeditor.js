@@ -262,7 +262,7 @@ class CustomImageUploadAdapter {
 			}
 
 			resolve({
-				default: response.url,
+				default: response.secure_url || response.url,
 			});
 		});
 
