@@ -228,60 +228,38 @@ class CustomImageUploadAdapter {
 
 		xhr.addEventListener('error', () => reject(genericErrorText));
 		xhr.addEventListener('abort', () => reject());
-		xhr.addEventListener('readystatechange', () => {
-			xhr.onreadystatechange = function (e) {
-				const {
-					responseHeaders = {},
-					// responseText = '{}',
-					status = '',
-					statusText = '',
-				} = e.target;
-				if (xhr.readyState === 4 && responseHeaders['X-Cld-Error']) {
-					const errorMessage = responseHeaders['X-Cld-Error'];
-					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
-				}
-				if (xhr.readyState === 4 && status === 413) {
-					// 413 Payload Too Large error
-					const errorMessage = statusText;
-					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
-				}
-				if (xhr.readyState === 4 && status === 400) {
-					// 400 Bad request - invalid image file
-					let resp;
-					try {
-						resp = responseText;
-						// resp = JSON.parse(responseText);
-					} catch (err) {
-						reject('Unable to parse error message');
-					}
-					const errorMessage = statusText;
-					reject(
-						`invoke::cloudinary-helper::ERROR ${
-							(resp.error && resp.error.message) || errorMessage
-						}`,
-					);
-				}
-			};
-		});
-		xhr.addEventListener('load', () => {
-			const response = xhr.response;
 
-			if (!response || response.error) {
+		xhr.addEventListener('load', () => {
+			const response = xhr.response; // SAFE with responseType = 'json'
+
+			// Cloudinary header errors (correct way)
+			const cldError = xhr.getResponseHeader('X-Cld-Error');
+			if (cldError) {
+				return reject(`invoke::cloudinary-helper::ERROR ${cldError}`);
+			}
+
+			if (xhr.status === 413) {
 				return reject(
-					response && response.error
-						? response.error.message
-						: genericErrorText,
+					`invoke::cloudinary-helper::ERROR ${xhr.statusText}`,
 				);
 			}
 
+			if (xhr.status === 400) {
+				const errorMessage = response?.error?.message || xhr.statusText;
+				return reject(
+					`invoke::cloudinary-helper::ERROR ${errorMessage}`,
+				);
+			}
+
+			if (!response || response.error) {
+				return reject(response?.error?.message || genericErrorText);
+			}
+
 			resolve({
-				default: response.url,
+				default: response.secure_url || response.url,
 			});
 		});
 
-		// Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
-		// properties which are used e.g. to display the upload progress bar in the editor
-		// user interface.
 		if (xhr.upload) {
 			xhr.upload.addEventListener('progress', (evt) => {
 				if (evt.lengthComputable) {
@@ -291,6 +269,76 @@ class CustomImageUploadAdapter {
 			});
 		}
 	}
+	// _initListeners(resolve, reject, file) {
+	// 	const xhr = this.xhr;
+	// 	const loader = this.loader;
+	// 	const genericErrorText = `Couldn't upload file: ${file.name}.`;
+
+	// 	xhr.addEventListener('error', () => reject(genericErrorText));
+	// 	xhr.addEventListener('abort', () => reject());
+	// 	xhr.addEventListener('readystatechange', () => {
+	// 		xhr.onreadystatechange = function (e) {
+	// 			const {
+	// 				responseHeaders = {},
+	// 				// responseText = '{}',
+	// 				status = '',
+	// 				statusText = '',
+	// 			} = e.target;
+	// 			if (xhr.readyState === 4 && responseHeaders['X-Cld-Error']) {
+	// 				const errorMessage = responseHeaders['X-Cld-Error'];
+	// 				reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+	// 			}
+	// 			if (xhr.readyState === 4 && status === 413) {
+	// 				// 413 Payload Too Large error
+	// 				const errorMessage = statusText;
+	// 				reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
+	// 			}
+	// 			if (xhr.readyState === 4 && status === 400) {
+	// 				// 400 Bad request - invalid image file
+	// 				let resp;
+	// 				try {
+	// 					resp = responseText;
+	// 					// resp = JSON.parse(responseText);
+	// 				} catch (err) {
+	// 					reject('Unable to parse error message');
+	// 				}
+	// 				const errorMessage = statusText;
+	// 				reject(
+	// 					`invoke::cloudinary-helper::ERROR ${
+	// 						(resp.error && resp.error.message) || errorMessage
+	// 					}`,
+	// 				);
+	// 			}
+	// 		};
+	// 	});
+	// 	xhr.addEventListener('load', () => {
+	// 		const response = xhr.response;
+
+	// 		if (!response || response.error) {
+	// 			return reject(
+	// 				response && response.error
+	// 					? response.error.message
+	// 					: genericErrorText,
+	// 			);
+	// 		}
+
+	// 		resolve({
+	// 			default: response.url,
+	// 		});
+	// 	});
+
+	// 	// Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
+	// 	// properties which are used e.g. to display the upload progress bar in the editor
+	// 	// user interface.
+	// 	if (xhr.upload) {
+	// 		xhr.upload.addEventListener('progress', (evt) => {
+	// 			if (evt.lengthComputable) {
+	// 				loader.uploadTotal = evt.total;
+	// 				loader.uploaded = evt.loaded;
+	// 			}
+	// 		});
+	// 	}
+	// }
 
 	// Prepares the data and sends the request.
 	async _sendRequest(file) {
