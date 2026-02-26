@@ -51,10 +51,7 @@ import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperti
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import Collection from '@ckeditor/ckeditor5-utils/src/collection';
-import {
-	InputView,
-	createLabeledInputText
-} from '@ckeditor/ckeditor5-ui';
+import { InputView, createLabeledInputText } from '@ckeditor/ckeditor5-ui';
 import Model from '@ckeditor/ckeditor5-ui/src/model';
 import { Plugin } from '@ckeditor/ckeditor5-core/src';
 import { createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
@@ -66,121 +63,130 @@ class InsertSmartField extends Plugin {
 	_getToolbarContainer() {
 		return this.editor.ui.view.toolbar;
 	}
-	_createInput( placeholder, className ) {
-		const input = new InputView( this.editor.locale, createLabeledInputText );
+	_createInput(placeholder, className) {
+		const input = new InputView(this.editor.locale, createLabeledInputText);
 		input.placeholder = placeholder;
 		input.class = className;
 		return input;
 	}
-	_isItemMatching( item, queryText ) {
-		return item.toLowerCase().includes( queryText.toLowerCase() );
+	_isItemMatching(item, queryText) {
+		return item.toLowerCase().includes(queryText.toLowerCase());
 	}
-	_generateListItems( sfList, cbFn ) {
+	_generateListItems(sfList, cbFn) {
 		const toolbarContainer = this._getToolbarContainer();
-		const dropdownList = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-list' );
+		const dropdownList = toolbarContainer.element.querySelector(
+			'.smartfield-dropdown-button .ck-list',
+		);
 		// Clear the existing list
 		dropdownList.innerHTML = '';
-		sfList.forEach( ( smartfield, idx ) => {
-			const listItem = document.createElement( 'li' );
+		sfList.forEach((smartfield, idx) => {
+			const listItem = document.createElement('li');
 			listItem.className = 'ck ck-list__item';
-			const button = document.createElement( 'button' );
+			const button = document.createElement('button');
 			button.type = 'button';
 			button.className = 'ck ck-button ck-off ck-button_with-text';
 			button.tabIndex = idx;
-			button.onclick = evt => {
-				const formattedText = `[[${ evt.target.innerText.replace(
+			button.onclick = (evt) => {
+				const formattedText = `[[${evt.target.innerText.replace(
 					/ /g,
-					''
-				) }]]`;
-				const panel = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-dropdown__panel' );
-				panel.classList.remove( 'ck-dropdown__panel-visible' );
-				this.editor.model.change( () => {
-					cbFn( this.editor, formattedText );
-				} );
+					'',
+				)}]]`;
+				const panel = toolbarContainer.element.querySelector(
+					'.smartfield-dropdown-button .ck-dropdown__panel',
+				);
+				panel.classList.remove('ck-dropdown__panel-visible');
+				this.editor.model.change(() => {
+					cbFn(this.editor, formattedText);
+				});
 			};
-			const span = document.createElement( 'span' );
+			const span = document.createElement('span');
 			span.textContent = smartfield;
 			span.className = 'ck ck-button__label';
-			button.append( span );
-			listItem.appendChild( button );
-			dropdownList.appendChild( listItem );
-		} );
+			button.append(span);
+			listItem.appendChild(button);
+			dropdownList.appendChild(listItem);
+		});
 	}
 	init() {
 		const editor = this.editor;
 		const componentFactory = editor.ui.componentFactory;
 		const t = editor.t;
 		const smartFieldsConfig = editor.config._config.smartFields;
-		const {
-			cbFn = () => {},
-			smartFieldsDropdownList: smartFields = []
-		} = smartFieldsConfig;
-		const searchPlaceholder = new DOMParser().parseFromString( '&#128269;  Search Smartfields', 'text/html' ).body.textContent;
-		const searchInputView = this._createInput( searchPlaceholder );
+		const { cbFn = () => {}, smartFieldsDropdownList: smartFields = [] } =
+			smartFieldsConfig;
+		const searchPlaceholder = new DOMParser().parseFromString(
+			'&#128269;  Search Smartfields',
+			'text/html',
+		).body.textContent;
+		const searchInputView = this._createInput(searchPlaceholder);
 
-		searchInputView.on( 'input', ( a, evt ) => {
-			const filteredSmartfieldList = smartFields.filter( item => this._isItemMatching( item, evt.target.value ) );
-			this._generateListItems( filteredSmartfieldList, cbFn );
-		} );
+		searchInputView.on('input', (a, evt) => {
+			const filteredSmartfieldList = smartFields.filter((item) =>
+				this._isItemMatching(item, evt.target.value),
+			);
+			this._generateListItems(filteredSmartfieldList, cbFn);
+		});
 
 		searchInputView.render();
 
-		componentFactory.add( 'insertSmartField', locale => {
-			const dropdownView = createDropdown( locale );
-			dropdownView.set( {
-				class: 'smartfield-dropdown-button'
-			} );
+		componentFactory.add('insertSmartField', (locale) => {
+			const dropdownView = createDropdown(locale);
+			dropdownView.set({
+				class: 'smartfield-dropdown-button',
+			});
 
-			dropdownView.buttonView.set( {
+			dropdownView.buttonView.set({
 				class: 'smartfield-icon',
 				icon: smartfieldIcon,
-				label: t( 'Insert smart field' ),
-				tooltip: true
-			} );
+				label: t('Insert smart field'),
+				tooltip: true,
+			});
 
 			// The collection of list items
 			const items = new Collection();
 
-			smartFields.map( option =>
-				items.add( {
+			smartFields.map((option) =>
+				items.add({
 					type: 'button',
-					model: new Model( {
+					model: new Model({
 						label: option,
 						withText: true,
-						tooltip: true
-					} )
-				} )
+						tooltip: true,
+					}),
+				}),
 			);
 			// Create a dropdown with list of smartfields inside the panel.
-			addListToDropdown( dropdownView, items );
+			addListToDropdown(dropdownView, items);
 			dropdownView.render();
-			dropdownView.panelView.element.append( searchInputView.element );
+			dropdownView.panelView.element.append(searchInputView.element);
 
-			dropdownView.on( 'execute', evt => {
-				const formattedText = `[[${ evt.source.label.replace(
+			dropdownView.on('execute', (evt) => {
+				const formattedText = `[[${evt.source.label.replace(
 					/ /g,
-					''
-				) }]]`;
-				editor.model.change( () => {
-					cbFn( editor, formattedText );
-				} );
-			} );
+					'',
+				)}]]`;
+				editor.model.change(() => {
+					cbFn(editor, formattedText);
+				});
+			});
 
-			dropdownView.on( 'change', ( evt, _, isOpen ) => {
-				if ( evt.name === 'change:isOpen' && !isOpen ) {
-					const toolbarContainer = this._getToolbarContainer( editor );
-					const searchInput = toolbarContainer.element.querySelector( '.smartfield-dropdown-button .ck-input' );
+			dropdownView.on('change', (evt, _, isOpen) => {
+				if (evt.name === 'change:isOpen' && !isOpen) {
+					const toolbarContainer = this._getToolbarContainer(editor);
+					const searchInput = toolbarContainer.element.querySelector(
+						'.smartfield-dropdown-button .ck-input',
+					);
 					searchInput.value = '';
-					this._generateListItems( smartFields, cbFn );
+					this._generateListItems(smartFields, cbFn);
 				}
-			} );
+			});
 			return dropdownView;
-		} );
+		});
 	}
 }
 
 class CustomImageUploadAdapter {
-	constructor( loader, editor ) {
+	constructor(loader, editor) {
 		this.loader = loader;
 		this.editor = editor;
 	}
@@ -188,18 +194,18 @@ class CustomImageUploadAdapter {
 	// Starts the upload process.
 	upload() {
 		return this.loader.file.then(
-			file =>
-				new Promise( ( resolve, reject ) => {
+			(file) =>
+				new Promise((resolve, reject) => {
 					this._initRequest();
-					this._initListeners( resolve, reject, file );
-					this._sendRequest( file );
-				} )
+					this._initListeners(resolve, reject, file);
+					this._sendRequest(file);
+				}),
 		);
 	}
 
 	// Aborts the upload process.
 	abort() {
-		if ( this.xhr ) {
+		if (this.xhr) {
 			this.xhr.abort();
 		}
 	}
@@ -207,86 +213,87 @@ class CustomImageUploadAdapter {
 	// Initializes the XMLHttpRequest object using the URL passed to the constructor.
 	_initRequest() {
 		// eslint-disable-next-line no-undef
-		const xhr = this.xhr = new XMLHttpRequest();
+		const xhr = (this.xhr = new XMLHttpRequest());
 		const editor = this.editor;
 		const { uploadUrl } = editor.config._config.simpleUpload;
-		xhr.open( 'POST', uploadUrl, true );
+		xhr.open('POST', uploadUrl, true);
 		xhr.responseType = 'json';
 	}
 
 	// Initializes XMLHttpRequest listeners.
-	_initListeners( resolve, reject, file ) {
+	_initListeners(resolve, reject, file) {
 		const xhr = this.xhr;
 		const loader = this.loader;
-		const genericErrorText = `Couldn't upload file: ${ file.name }.`;
+		const genericErrorText = `Couldn't upload file: ${file.name}.`;
 
-		xhr.addEventListener( 'error', () => reject( genericErrorText ) );
-		xhr.addEventListener( 'abort', () => reject() );
-		xhr.addEventListener( 'readystatechange', () => {
-			xhr.onreadystatechange = function( e ) {
+		xhr.addEventListener('error', () => reject(genericErrorText));
+		xhr.addEventListener('abort', () => reject());
+		xhr.addEventListener('readystatechange', () => {
+			xhr.onreadystatechange = function (e) {
 				const {
 					responseHeaders = {},
-					responseText = '{}',
+					// responseText = '{}',
 					status = '',
-					statusText = ''
+					statusText = '',
 				} = e.target;
-				if ( xhr.readyState === 4 && responseHeaders[ 'X-Cld-Error' ] ) {
-					const errorMessage = responseHeaders[ 'X-Cld-Error' ];
-					reject( `invoke::cloudinary-helper::ERROR ${ errorMessage }` );
+				if (xhr.readyState === 4 && responseHeaders['X-Cld-Error']) {
+					const errorMessage = responseHeaders['X-Cld-Error'];
+					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
 				}
-				if ( xhr.readyState === 4 && status === 413 ) {
+				if (xhr.readyState === 4 && status === 413) {
 					// 413 Payload Too Large error
 					const errorMessage = statusText;
-					reject( `invoke::cloudinary-helper::ERROR ${ errorMessage }` );
+					reject(`invoke::cloudinary-helper::ERROR ${errorMessage}`);
 				}
-				if ( xhr.readyState === 4 && status === 400 ) {
+				if (xhr.readyState === 4 && status === 400) {
 					// 400 Bad request - invalid image file
 					let resp;
 					try {
-						resp = JSON.parse( responseText );
-					} catch ( err ) {
-						reject( 'Unable to parse error message' );
+						resp = responseText;
+						// resp = JSON.parse(responseText);
+					} catch (err) {
+						reject('Unable to parse error message');
 					}
 					const errorMessage = statusText;
 					reject(
 						`invoke::cloudinary-helper::ERROR ${
-							( resp.error && resp.error.message ) || errorMessage
-						}`
+							(resp.error && resp.error.message) || errorMessage
+						}`,
 					);
 				}
 			};
-		} );
-		xhr.addEventListener( 'load', () => {
+		});
+		xhr.addEventListener('load', () => {
 			const response = xhr.response;
 
-			if ( !response || response.error ) {
+			if (!response || response.error) {
 				return reject(
-					response && response.error ?
-						response.error.message :
-						genericErrorText
+					response && response.error
+						? response.error.message
+						: genericErrorText,
 				);
 			}
 
-			resolve( {
-				default: response.url
-			} );
-		} );
+			resolve({
+				default: response.url,
+			});
+		});
 
 		// Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
 		// properties which are used e.g. to display the upload progress bar in the editor
 		// user interface.
-		if ( xhr.upload ) {
-			xhr.upload.addEventListener( 'progress', evt => {
-				if ( evt.lengthComputable ) {
+		if (xhr.upload) {
+			xhr.upload.addEventListener('progress', (evt) => {
+				if (evt.lengthComputable) {
 					loader.uploadTotal = evt.total;
 					loader.uploaded = evt.loaded;
 				}
-			} );
+			});
 		}
 	}
 
 	// Prepares the data and sends the request.
-	async _sendRequest( file ) {
+	async _sendRequest(file) {
 		const xhr = this.xhr;
 		const editor = this.editor;
 		const {
@@ -295,64 +302,64 @@ class CustomImageUploadAdapter {
 			cloudinaryParams,
 			generateSignatureCallback,
 			getPublicId,
-			tenantId
+			tenantId,
 		} = editor.config._config.simpleUpload;
 		// eslint-disable-next-line no-undef
 		const data = new FormData();
 		const publicId = getPublicId();
-		const fileExt = file.name.split( '.' ).pop() || '';
-		const tags = `${ tenantId }${ publicId }.${ fileExt }`;
-		const signature = await generateSignatureCallback( {
+		const fileExt = file.name.split('.').pop() || '';
+		const tags = `${tenantId}${publicId}.${fileExt}`;
+		const signature = await generateSignatureCallback({
 			...cloudinaryParams,
 			tags,
-			public_id: publicId
-		} );
+			public_id: publicId,
+		});
 		// eslint-disable-next-line no-undef
 		// eslint-disable-next-line space-in-parens
 		// eslint-disable-next-line no-undef
-		data.append( 'eager', cloudinaryParams.eager );
-		data.append( 'public_id', publicId );
-		data.append( 'folder', cloudinaryParams.folder );
-		data.append( 'timestamp', cloudinaryParams.timestamp );
-		data.append( 'api_key', api_key );
-		data.append( 'signature', signature.data.getCloudinarySignature );
-		data.append( 'tags', tags );
-		data.append( 'file', file );
+		data.append('eager', cloudinaryParams.eager);
+		data.append('public_id', publicId);
+		data.append('folder', cloudinaryParams.folder);
+		data.append('timestamp', cloudinaryParams.timestamp);
+		data.append('api_key', api_key);
+		data.append('signature', signature.data.getCloudinarySignature);
+		data.append('tags', tags);
+		data.append('file', file);
 
-		xhr.setRequestHeader( 'X-Requested-With', 'XMLHttpRequest' );
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-		this.xhr.send( data );
+		this.xhr.send(data);
 	}
 }
 
-function CustomImageUploadAdapterPlugin( editor ) {
-	editor.plugins.get( 'FileRepository' ).createUploadAdapter = loader => {
-		return new CustomImageUploadAdapter( loader, editor );
+function CustomImageUploadAdapterPlugin(editor) {
+	editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+		return new CustomImageUploadAdapter(loader, editor);
 	};
 }
 
-function MentionCustomization( editor ) {
+function MentionCustomization(editor) {
 	// eslint-disable-next-line no-undef
-	editor.conversion.for( 'upcast' ).elementToAttribute( {
+	editor.conversion.for('upcast').elementToAttribute({
 		view: {
 			name: 'span',
 			key: 'data-mention',
 			classes: 'mention',
 			attributes: {
 				'data-user-id': true,
-				id: 'mention-id'
-			}
+				id: 'mention-id',
+			},
 		},
 		model: {
-			key: 'mention'
+			key: 'mention',
 		},
-		converterPriority: 'high'
-	} );
+		converterPriority: 'high',
+	});
 
-	editor.conversion.for( 'downcast' ).attributeToElement( {
+	editor.conversion.for('downcast').attributeToElement({
 		model: 'mention',
-		view: ( modelAttributeValue, { writer } ) => {
-			if ( !modelAttributeValue ) {
+		view: (modelAttributeValue, { writer }) => {
+			if (!modelAttributeValue) {
 				return;
 			}
 
@@ -360,18 +367,18 @@ function MentionCustomization( editor ) {
 				'span',
 				{
 					class: 'mention',
-					id: 'mention-id'
+					id: 'mention-id',
 				},
 				{
 					// Make mention attribute to be wrapped by other attribute elements.
 					priority: 20,
 					// Prevent merging mentions together.
-					id: modelAttributeValue.uid
-				}
+					id: modelAttributeValue.uid,
+				},
 			);
 		},
-		converterPriority: 'high'
-	} );
+		converterPriority: 'high',
+	});
 }
 
 export default class DecoupledEditor extends DecoupledEditorBase {}
@@ -379,32 +386,32 @@ export default class DecoupledEditor extends DecoupledEditorBase {}
 const customColorPalette = [
 	{
 		color: 'hsl(4, 90%, 58%)',
-		label: 'Red'
+		label: 'Red',
 	},
 	{
 		color: 'hsl(340, 82%, 52%)',
-		label: 'Pink'
+		label: 'Pink',
 	},
 	{
 		color: 'hsl(291, 64%, 42%)',
-		label: 'Purple'
+		label: 'Purple',
 	},
 	{
 		color: 'hsl(262, 52%, 47%)',
-		label: 'Deep Purple'
+		label: 'Deep Purple',
 	},
 	{
 		color: 'hsl(231, 48%, 48%)',
-		label: 'Indigo'
+		label: 'Indigo',
 	},
 	{
 		color: 'hsl(207, 90%, 54%)',
-		label: 'Blue'
+		label: 'Blue',
 	},
 	{
 		color: 'hsl(207, 90%, 54%, 0)',
-		label: 'transparent'
-	}
+		label: 'transparent',
+	},
 ];
 
 // Plugins to include in the build.
@@ -455,7 +462,7 @@ DecoupledEditor.builtinPlugins = [
 	TableToolbar,
 	TextTransformation,
 	Widget,
-	CustomImageUploadAdapterPlugin
+	CustomImageUploadAdapterPlugin,
 ];
 
 // Editor configuration.
@@ -497,11 +504,11 @@ DecoupledEditor.defaultConfig = {
 			'nextPage',
 			'pageNavigation',
 			'|',
-			'insertSmartField'
-		]
+			'insertSmartField',
+		],
 	},
 	image: {
-		styles: [ 'full', 'alignLeft', 'alignRight' ],
+		styles: ['full', 'alignLeft', 'alignRight'],
 		resizeUnit: 'px',
 		toolbar: [
 			'imageStyle:inline',
@@ -509,8 +516,8 @@ DecoupledEditor.defaultConfig = {
 			'imageStyle:breakText',
 			'|',
 			'toggleImageCaption',
-			'imageTextAlternative'
-		]
+			'imageTextAlternative',
+		],
 	},
 	table: {
 		contentToolbar: [
@@ -518,16 +525,16 @@ DecoupledEditor.defaultConfig = {
 			'tableRow',
 			'mergeTableCells',
 			'tableProperties',
-			'tableCellProperties'
+			'tableCellProperties',
 		],
 		tableProperties: {
 			borderColors: customColorPalette,
-			backgroundColors: customColorPalette
+			backgroundColors: customColorPalette,
 		},
 		tableCellProperties: {
 			borderColors: customColorPalette,
-			backgroundColors: customColorPalette
-		}
+			backgroundColors: customColorPalette,
+		},
 	},
 	// lineHeight: {
 	// 	options: [ 1, 1.15, 1.5, 2, 2.5 ]
@@ -536,9 +543,9 @@ DecoupledEditor.defaultConfig = {
 		properties: {
 			styles: true,
 			startIndex: true,
-			reversed: true
-		}
+			reversed: true,
+		},
 	},
 	// This value must be kept in sync with the language defined in webpack.config.js.
-	language: 'en'
+	language: 'en',
 };
