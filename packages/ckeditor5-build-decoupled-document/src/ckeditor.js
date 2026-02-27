@@ -232,18 +232,6 @@ class CustomImageUploadAdapter {
 		xhr.addEventListener('load', () => {
 			const response = xhr.response; // SAFE with responseType = 'json'
 
-			// Cloudinary header errors (correct way)
-			let cldError = null;
-			try {
-				cldError = xhr.getResponseHeader('X-Cld-Error');
-			} catch (e) {
-				// header not accessible due to CORS
-			}
-
-			if (cldError) {
-				return reject(`invoke::cloudinary-helper::ERROR ${cldError}`);
-			}
-
 			if (xhr.status === 413) {
 				return reject(
 					`invoke::cloudinary-helper::ERROR ${xhr.statusText}`,
