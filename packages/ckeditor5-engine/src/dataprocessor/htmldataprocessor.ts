@@ -127,7 +127,9 @@ export default class HtmlDataProcessor implements DataProcessor {
 		// Wrap data with a <body> tag so leading non-layout nodes (like <script>, <style>, HTML comment)
 		// will be preserved in the body collection.
 		// Do it only for data that is not a full HTML document.
-		if ( !data.match( /<(?:html|body|head|meta)(?:\s[^>]*)?>/i ) ) {
+		// The attribute-matching quantifier below is bounded to prevent a polynomial-time regular
+		// expression denial of service (ReDoS) on adversarial/uncontrolled input.
+		if ( !data.match( /<(?:html|body|head|meta)(?:\s[^>]{0,10000})?>/i ) ) {
 			data = `<body>${ data }</body>`;
 		}
 
