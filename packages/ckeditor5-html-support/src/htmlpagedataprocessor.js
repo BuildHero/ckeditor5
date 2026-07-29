@@ -21,7 +21,7 @@ export default class HtmlPageDataProcessor extends HtmlDataProcessor {
 	 */
 	toView( data ) {
 		// Ignore content that is not a full page source.
-		if ( !data.match( /<(?:html|body|head|meta)(?:\s[^>]*)?>/i ) ) {
+		if ( !data.match( /<(?:html|body|head|meta)[\s>]/i ) ) {
 			return super.toView( data );
 		}
 
