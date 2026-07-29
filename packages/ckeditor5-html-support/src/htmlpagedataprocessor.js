@@ -29,7 +29,11 @@ export default class HtmlPageDataProcessor extends HtmlDataProcessor {
 		let docType = '';
 		let xmlDeclaration = '';
 
-		data = data.replace( /<!DOCTYPE[^>]*>/i, match => {
+		// The `[^>]*` quantifier is bounded to prevent a polynomial (quadratic) blow-up in the regular
+		// expression engine when parsing very large, adversarial input containing many repetitions of
+		// the '<!doctype' literal without a closing '>'. Real DOCTYPE declarations are always far shorter
+		// than this limit, so legitimate documents are handled identically.
+		data = data.replace( /<!DOCTYPE[^>]{0,10000}>/i, match => {
 			docType = match;
 
 			return '';
