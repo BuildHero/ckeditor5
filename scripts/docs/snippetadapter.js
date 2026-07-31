@@ -55,7 +55,7 @@ module.exports = async function snippetAdapter( snippets, options, umbertoHelper
 				}
 
 				// Find a root path where to look for the snippet's sources. We just want to pass it through Webpack.
-				const snippetBasePathRegExp = new RegExp( snippetData.snippetName.replace( /\//g, '\\/' ) + '.*$' );
+				const snippetBasePathRegExp = new RegExp( escapeRegExp( snippetData.snippetName ) + '.*$' );
 				const snippetBasePath = snippetData.snippetSources.js.replace( snippetBasePathRegExp, '' );
 
 				const dependencySnippet = {
@@ -253,6 +253,17 @@ module.exports = async function snippetAdapter( snippets, options, umbertoHelper
 			console.log( 'Finished building snippets.' );
 		} );
 };
+
+/**
+ * Escapes all regular expression special characters (including backslashes) in the given string so that
+ * it can be safely embedded into a `RegExp` and matched literally.
+ *
+ * @param {String} string
+ * @returns {String}
+ */
+function escapeRegExp( string ) {
+	return string.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+}
 
 /**
  * Removes snippets that names do not match to patterns specified in `allowedSnippets` array.
