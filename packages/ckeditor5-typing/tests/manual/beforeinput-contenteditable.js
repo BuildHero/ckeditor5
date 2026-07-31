@@ -36,7 +36,7 @@ function logEvent( evt ) {
 
 	debouncedLine();
 
-	console.group( `%c${ evt.type }`, 'color:red' );
+	console.group( '%c%s', 'color:red', evt.type );
 
 	if ( 'inputType' in evt ) {
 		console.log( `%cinput type:%c "${ evt.inputType }"`, 'font-weight: bold', 'font-weight: default; color: blue' );
