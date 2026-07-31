@@ -25,6 +25,9 @@ export default function normalizeClipboardData( data: string ): string {
 
 			return spaces;
 		} )
-		// Remove all HTML comments.
-		.replace( /<!--[\s\S]*?-->/g, '' );
+		// Remove all HTML comments. Note that HTML comments may also be terminated by the bogus-comment
+		// closing sequence "--!>" (accepted by browsers' HTML parsers), so both terminators must be matched
+		// to avoid leaving an unclosed "<!--" that a lenient parser could later close early, exposing
+		// otherwise-hidden markup.
+		.replace( /<!--[\s\S]*?(?:-->|--!>)/g, '' );
 }
