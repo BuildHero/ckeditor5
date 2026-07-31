@@ -21,7 +21,6 @@ import type {
 	DowncastAttributeEvent,
 	Item
 } from 'ckeditor5/src/engine';
-import { uid } from 'ckeditor5/src/utils';
 
 import MentionCommand from './mentioncommand';
 import type { MentionAttribute } from './mention';
@@ -81,13 +80,29 @@ export default class MentionEditing extends Plugin {
 }
 
 /**
+ * Generates a unique identifier for a mention attribute.
+ *
+ * This value is only used internally by the editing/view conversion layer to distinguish and merge mention
+ * `AttributeElement`s - it is never rendered to the user or used for any authentication/authorization purpose.
+ * It is generated using the Web Crypto API instead of `Math.random()` to avoid relying on a non-cryptographically
+ * secure source of randomness.
+ */
+function _generateMentionUid(): string {
+	const randomValues = new Uint32Array( 4 );
+
+	crypto.getRandomValues( randomValues );
+
+	return Array.from( randomValues, value => value.toString( 36 ) ).join( '' );
+}
+
+/**
  * @internal
  */
 export function _addMentionAttributes(
 	baseMentionData: MentionAttribute,
 	data?: MentionAttribute
 ): MentionAttribute {
-	return Object.assign( { uid: uid() }, baseMentionData, data || {} );
+	return Object.assign( { uid: _generateMentionUid() }, baseMentionData, data || {} );
 }
 
 /**
