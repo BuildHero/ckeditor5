@@ -15,7 +15,7 @@
  * @returns {String} Normalized HTML.
  */
 export default function normalizeClipboardData( data ) {
-	return data
+	const normalized = data
 		.replace( /<span(?: class="Apple-converted-space"|)>(\s+)<\/span>/g, ( fullMatch, spaces ) => {
 			// Handle the most popular and problematic case when even a single space becomes an nbsp;.
 			// Decode those to normal spaces. Read more in https://github.com/ckeditor/ckeditor5-clipboard/issues/2.
@@ -24,7 +24,18 @@ export default function normalizeClipboardData( data ) {
 			}
 
 			return spaces;
-		} )
-		// Remove all HTML comments.
-		.replace( /<!--[\s\S]*?-->/g, '' );
+		} );
+
+	// Remove all HTML comments. Repeat the removal until no more comments are found because a single pass
+	// could leave behind a new comment sequence formed by the concatenation of remnants left after removing
+	// nested/adjacent comments (e.g. "<!--<!---->-->").
+	let result = normalized;
+	let previous;
+
+	do {
+		previous = result;
+		result = result.replace( /<!--[\s\S]*?-->/g, '' );
+	} while ( result !== previous );
+
+	return result;
 }
