@@ -421,8 +421,8 @@ function createHtmlOutputMarkupForPlugin( htmlOutput ) {
 			const comment = entry._comment ?
 				`<p>${
 					entry._comment
-						.replace( '<', '&lt;' )
-						.replace( '>', '&gt;' )
+						.replace( /</g, '&lt;' )
+						.replace( />/g, '&gt;' )
 						.replace( /`(.*?)`/g, '<code>$1</code>' )
 						.replace( /\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>' )
 				}</p>` :
